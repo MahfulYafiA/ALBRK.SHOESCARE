@@ -14,14 +14,14 @@ return new class extends Migration
                 $table->dropColumn('metode_pembayaran');
             }
 
-            // ✅ 2. Pastikan kolom yang benar ('metode_bayar') bersifat nullable 
+            // ✅ 2. Pastikan kolom yang benar ('metode_bayar') bersifat nullable
             // agar tidak error saat proses Midtrans dimulai
             if (Schema::hasColumn('tr_pembayaran', 'metode_bayar')) {
                 $table->string('metode_bayar')->nullable()->change();
             } else {
                 $table->string('metode_bayar')->nullable()->after('id_reservasi');
             }
-            
+
             // ✅ 3. Pastikan kolom pendukung lainnya juga bisa kosong dulu (nullable)
             $table->dateTime('tanggal')->nullable()->change();
             $table->integer('jumlah')->nullable()->change();

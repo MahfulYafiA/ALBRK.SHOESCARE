@@ -11,6 +11,15 @@ class SiteSettingService implements SiteSettingServiceInterface
 {
     public function __construct(private SettingRepositoryInterface $settingRepository) {}
 
+    public function imageUrl(string $key): ?string
+    {
+        $path = $this->settingRepository->value($key);
+
+        return $path && Storage::disk('public')->exists($path)
+            ? route('media.public', ['path' => $path])
+            : null;
+    }
+
     public function updateImage(string $key, string $prefix, UploadedFile $file): array
     {
         if (! $file->isValid()) {
@@ -26,7 +35,7 @@ class SiteSettingService implements SiteSettingServiceInterface
         }
 
         $oldPath = $this->settingRepository->value($key);
-        $path = $file->storeAs('images', $prefix . '_' . uniqid('', true) . '.' . $file->extension(), 'public');
+        $path = $file->storeAs('images', $prefix.'_'.uniqid('', true).'.'.$file->extension(), 'public');
 
         $this->settingRepository->set($key, $path);
 

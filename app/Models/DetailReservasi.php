@@ -11,7 +11,9 @@ class DetailReservasi extends Model
     use HasFactory;
 
     protected $table = 'tr_detail_reservasi';
+
     protected $primaryKey = 'id_detail';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -49,6 +51,6 @@ class DetailReservasi extends Model
      */
     public function getFormattedHargaAttribute(): string
     {
-        return 'Rp ' . number_format($this->harga, 0, ',', '.');
+        return 'Rp '.number_format($this->harga, 0, ',', '.');
     }
 }

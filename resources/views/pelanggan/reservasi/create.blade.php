@@ -1,445 +1,303 @@
+@php
+    $fallbackImages = ['Cuci Sepatu' => 'fastclean.png', 'Deep Cleaning' => 'deepclean.png', 'Unyellowing' => 'unyellowing.png', 'Repaint' => 'adidasspezial.png', 'Treatment' => 'fastclean.png'];
+    $selectedLayanans = array_map('strval', (array) old('id_layanans', request('id_layanans', [])));
+    $selectedQuantities = (array) old('jumlah_layanan', []);
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buat Reservasi - ALBRK.SHOESCARE</title>
-
+    <title>Reservasi Layanan - ALBRK.SHOESCARE</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#111111',
-                        secondary: '#525252',
-                        accent: '#737373',
-                        dark: '#111111',
-                        surface: '#f5f5f5',
-                    },
-                    fontFamily: {
-                        display: ['Plus Jakarta Sans', 'sans-serif'],
-                        body: ['Plus Jakarta Sans', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        body { background-color: #f5f5f5; }
-
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(23, 23, 23, 0.08);
+        body { background:#f3f7fa; color:#17303d; }
+        .booking-panel { background:#fff; border:1px solid #dbe5ea; box-shadow:0 5px 18px rgba(23,48,61,.045); }
+        .booking-service { transition:border-color .18s, box-shadow .18s, transform .18s; }
+        .booking-service:hover { transform:translateY(-2px); border-color:#9eb5c0; box-shadow:0 8px 18px rgba(23,48,61,.08); }
+        .service-description { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3; }
+        .booking-checkbox:checked + .booking-service { border-color:#17303d; box-shadow:0 0 0 1px #17303d; }
+        .booking-checkbox:checked + .booking-service .booking-check { opacity:1; transform:scale(1); }
+        .booking-choice:checked + .booking-choice-card { border-color:#17303d; background:#f3f7fa; box-shadow:0 0 0 1px #17303d; }
+        .booking-field { border:1px solid #dbe5ea; background:#fff; color:#17303d; }
+        .booking-field:focus { outline:none; border-color:#6f91a0; box-shadow:0 0 0 3px rgba(23,48,61,.08); }
+        [data-quantity-minus]:focus-visible,[data-quantity-plus]:focus-visible { outline:2px solid #547786; outline-offset:-2px; }
+        [data-quantity-minus]:disabled,[data-quantity-plus]:disabled { cursor:not-allowed; opacity:.45; }
+        .booking-scroll { scrollbar-width:thin; scrollbar-color:#cbd8de transparent; }
+        .customer-sidebar { background:#142a34; }
+        .customer-nav-link { display:flex; align-items:center; gap:11px; border-radius:8px; padding:9px 10px; color:#d5dfe3; transition:background .18s,color .18s; }
+        .customer-nav-link i { width:16px; text-align:center; font-size:12px; }
+        .customer-nav-link:hover,.customer-nav-link.is-active { background:#ffffff29; color:#fff; }
+        @media(max-width:760px) {
+            .customer-sidebar { width:62px; padding-left:6px; padding-right:6px; }
+            .customer-sidebar .brand-label,.customer-sidebar .nav-label,.customer-sidebar .help-card { display:none; }
+            .customer-sidebar .brand-link { justify-content:center; padding-left:0; padding-right:0; }
+            .customer-sidebar .customer-nav-link { justify-content:center; padding:11px 0; font-size:0; }
+            .customer-sidebar .customer-nav-link i { font-size:13px; }
+            .customer-main { margin-left:62px!important; width:calc(100% - 62px)!important; }
         }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(23, 23, 23, 0.08);
-            transition: all 0.4s ease;
-        }
-
-        .btn-gradient {
-            background: linear-gradient(135deg, #111111 0%, #525252 100%);
-            transition: all 0.3s ease;
-        }
-        .btn-gradient:hover {
-            background: linear-gradient(135deg, #000000 0%, #262626 100%);
-            transform: translateY(-2px);
-            box-shadow: 0 20px 40px -14px rgba(23, 23, 23, 0.42);
-        }
-
-        .input-modern {
-            background: #ffffff;
-            border: 1px solid #e5e5e5;
-            transition: all 0.3s ease;
-        }
-        .input-modern:focus {
-            background: #ffffff;
-            border-color: #111111;
-            box-shadow: 0 0 0 4px rgba(17, 17, 17, 0.08);
-            outline: none;
-        }
-
-        .noise {
-            position: fixed; inset: 0;
-            pointer-events: none; z-index: 9999; opacity: 0.015;
-            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
-        }
-
-        .hero-bg {
-            background:
-                radial-gradient(circle at 15% 20%, rgba(212, 212, 212, 0.45) 0%, transparent 32%),
-                linear-gradient(180deg, #f5f5f5 0%, #ffffff 100%);
-        }
-
-        input[type="radio"]:checked + div {
-            border-color: #111111;
-            background-color: rgba(17, 17, 17, 0.03);
-            box-shadow: 0 0 15px rgba(17, 17, 17, 0.1);
-        }
-        input[type="radio"]:checked + div .radio-dot { opacity: 1; transform: scale(1); }
-        input[type="radio"]:checked + div h4 { color: #111111; }
-        input[type="checkbox"]:checked + div { border-color: #111111; background-color: rgba(17, 17, 17, 0.03); box-shadow: 0 0 15px rgba(17, 17, 17, 0.1); }
-        input[type="checkbox"]:checked + div .radio-dot { opacity: 1; transform: scale(1); }
-        input[type="checkbox"]:checked + div .selection-indicator { background: #111111; border-color: #111111; }
-
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-        ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 3px; }
     </style>
 </head>
-<body class="antialiased selection:bg-neutral-900 selection:text-white flex flex-col h-screen overflow-hidden relative">
+<body class="flex h-screen overflow-hidden antialiased">
+    @include('shared.pelanggan-sidebar')
 
-    <div class="noise"></div>
+    <main class="customer-main ml-[218px] flex h-screen min-w-0 flex-1 flex-col bg-[#f3f7fa]">
+        <header class="z-40 flex shrink-0 items-center justify-between border-b border-[#29424c] bg-[#17303d] px-5 py-3.5 text-white md:px-8">
+            <h1 class="text-sm font-bold text-white sm:text-base">Reservasi Layanan</h1>
+            <div class="ml-auto flex items-center gap-3 sm:gap-5">
+                <span class="hidden rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-slate-300 sm:block">Hari ini: <strong class="text-white">{{ now()->format('d M Y') }}</strong></span>
+                <a href="{{ route('pelanggan.notifikasi') }}" aria-label="Notifikasi, {{ $headerUnreadCount }} belum dibaca" title="Notifikasi" class="relative grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/10 text-slate-200 transition hover:bg-white/15"><i class="fa-regular fa-bell"></i>@if($headerUnreadCount)<span class="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>@endif</a>
+                <div class="relative">
+                    <button type="button" id="customerProfileButton" aria-expanded="false" aria-controls="customerProfileMenu" onclick="const menu=document.getElementById('customerProfileMenu');const open=menu.classList.toggle('hidden');this.setAttribute('aria-expanded',String(!open))" class="flex items-center rounded-full border border-white/10 bg-white/10 p-1 pr-3 transition hover:border-sky-400/50">
+                        @if(auth()->user()->foto_profil)<img src="{{ route('profil.foto') }}" alt="Foto profil" class="h-8 w-8 rounded-full border border-white/20 object-cover">@else<span class="grid h-8 w-8 place-items-center rounded-full bg-sky-700 text-[10px] font-bold">{{ strtoupper(substr(auth()->user()->nama ?? 'PL',0,2)) }}</span>@endif
+                        <span class="ml-2 hidden text-left sm:block"><strong class="block text-[9px] font-bold uppercase tracking-wider">{{ explode(' ',auth()->user()->nama ?? 'Pelanggan')[0] }}</strong><small class="mt-0.5 block text-[8px] font-semibold uppercase text-sky-300">Pelanggan</small></span><i class="fa-solid fa-chevron-down ml-2 text-[9px] text-slate-400"></i>
+                    </button>
+                    <div id="customerProfileMenu" class="absolute right-0 z-50 mt-2 hidden w-48 overflow-hidden rounded-xl border border-slate-200 bg-white text-xs text-slate-700 shadow-xl"><a href="{{ route('profil.index') }}" class="flex items-center gap-3 px-4 py-3 font-semibold hover:bg-slate-50"><i class="fa-solid fa-user-gear w-4 text-center"></i>Kelola Profil</a><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="flex w-full items-center gap-3 px-4 py-3 text-left font-semibold text-rose-600 hover:bg-rose-50"><i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i>Keluar</button></form></div>
+                </div>
+            </div>
+        </header>
+        <div class="booking-scroll flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
+        <div class="mx-auto w-full max-w-[1440px]">
+        @if(session('error'))
+            <div class="mb-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700"><i class="fa-solid fa-circle-exclamation"></i>{{ session('error') }}</div>
+        @endif
+        @if($errors->any())
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"><div class="mb-2 flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-circle-exclamation"></i>Periksa kembali data reservasi:</div><ul class="list-inside list-disc space-y-1 text-[10px]">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+        @endif
 
-    <header class="sticky top-0 z-50 glass border-b border-gray-300 transition-all duration-300 px-6 md:px-12 py-4 flex justify-between items-center shrink-0">
-        <div class="flex items-center gap-3 md:gap-4">
-            <h1 class="block font-display font-bold text-xl md:text-2xl uppercase tracking-tighter italic text-gray-900 leading-tight">
-                Form <span class="text-gray-400">Reservasi</span>
-            </h1>
+        <div class="mb-5 grid grid-cols-4 gap-3 rounded-xl border border-[#dbe5ea] bg-white px-4 py-4 sm:px-6">
+            @foreach(['Pilih Layanan','Jadwal & Lokasi','Detail reservasi','Konfirmasi'] as $index => $step)
+                <div class="flex min-w-0 items-center gap-3 text-[10px] sm:text-xs"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full {{ $index === 0 ? 'bg-[#17303d] text-white' : 'bg-[#eef4f7] text-slate-500' }} text-[11px] font-bold">{{ $index + 1 }}</span><span class="truncate {{ $index === 0 ? 'font-bold text-[#17303d]' : 'text-slate-500' }}">{{ $step }}</span>@if(!$loop->last)<span class="hidden h-px flex-1 bg-slate-200 sm:block"></span>@endif</div>
+            @endforeach
         </div>
-    </header>
 
-    <main class="flex-1 min-h-0 w-full overflow-y-auto relative z-10 p-4 md:p-6 lg:p-8 hero-bg">
-
-        <div class="max-w-5xl mx-auto">
-
-            @if (session('error'))
-                <div class="mb-8 bg-red-50 border border-red-200 text-red-700 p-6 rounded-3xl shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                        <p class="text-sm font-semibold">{{ session('error') }}</p>
-                    </div>
+        <form id="formReservasi" action="{{ route('reservasi.store') }}" method="POST" class="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,.9fr)]">
+            @csrf
+            <section class="booking-panel rounded-xl p-5 sm:p-6">
+                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                    <div><h2 class="text-base font-bold text-[#17303d]">Layanan Kami</h2><p class="mt-1 text-xs text-slate-500">Pilih layanan dan atur jumlah pasang di setiap kartu.</p></div>
+                    <label class="flex h-11 w-full items-center gap-2 rounded-lg border border-[#dbe5ea] px-3 text-slate-400 sm:max-w-[260px]"><i class="fa-solid fa-magnifying-glass text-[10px]"></i><input id="layananSearch" type="search" placeholder="Cari layanan..." class="w-full text-xs text-slate-700 outline-none" aria-label="Cari layanan"></label>
                 </div>
-            @endif
 
-            @if ($errors->any())
-                <div class="mb-8 md:mb-10 bg-red-50 border border-red-200 text-red-700 p-6 rounded-3xl shadow-sm">
-                    <div class="flex items-center gap-3 mb-2">
-                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                        <h4 class="font-bold uppercase tracking-widest text-[10px]">Ada kendala pada input Anda:</h4>
-                    </div>
-                    <ul class="list-disc list-inside text-xs font-semibold space-y-1 ml-1 text-red-500">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div id="serviceFilters" class="mb-4 flex flex-wrap gap-2.5 text-[11px]">
+                    <button type="button" data-service-filter="semua" class="rounded-full bg-[#17303d] px-4 py-2 font-semibold text-white">Semua</button>
+                    <button type="button" data-service-filter="cuci" class="rounded-full bg-slate-100 px-4 py-2 text-slate-500">Cuci & Bersih</button>
+                    <button type="button" data-service-filter="perawatan" class="rounded-full bg-slate-100 px-4 py-2 text-slate-500">Perawatan</button>
+                    <button type="button" data-service-filter="custom" class="rounded-full bg-slate-100 px-4 py-2 text-slate-500">Custom</button>
                 </div>
-            @endif
 
-            <form id="formReservasi" action="{{ route('reservasi.store') }}" method="POST" class="glass-card rounded-3xl p-5 md:p-8 lg:p-10 space-y-8 md:space-y-10">
-                @csrf
-
-                {{-- STEP 1: PILIH LAYANAN --}}
-                <div>
-                    <h3 class="font-display font-bold text-base md:text-lg uppercase tracking-widest mb-6 flex items-center gap-3 text-gray-900">
-                        <span class="bg-neutral-900 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs shadow-lg">1</span>
-                        Pilih Jenis Layanan <span class="text-xs normal-case tracking-normal text-gray-500">(bisa pilih lebih dari satu)</span>
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-5">
-                        @foreach($layanans as $l)
+                <div id="serviceGrid" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-3">
+                    @forelse($layanans as $l)
                         @php
                             $idLayanan = data_get($l, 'id', data_get($l, 'id_layanan'));
-                            $namaLayanan = data_get($l, 'nama_layanan');
-                            $hargaLayanan = data_get($l, 'harga', 0);
-                            $deskripsiLayanan = data_get($l, 'deskripsi');
-                            $selectedLayanans = (array) old('id_layanans', request('id_layanans', $loop->first ? [$idLayanan] : []));
-                            $isSelected = in_array((string) $idLayanan, array_map('strval', $selectedLayanans), true);
+                            $namaLayanan = data_get($l, 'nama_layanan', 'Layanan');
+                            $hargaLayanan = (int) data_get($l, 'harga', 0);
+                            $deskripsiLayanan = data_get($l, 'deskripsi', 'Perawatan sepatu profesional.');
+                            $gambarLayanan = data_get($l, 'gambar');
+                            $namaLayananLower = strtolower($namaLayanan);
+                            $kategoriLayanan = str_contains($namaLayananLower, 'custom') || str_contains($namaLayananLower, 'special') ? 'custom' : (str_contains($namaLayananLower, 'repaint') || str_contains($namaLayananLower, 'treatment') || str_contains($namaLayananLower, 'unyellowing') ? 'perawatan' : 'cuci');
+                            $isSelected = in_array((string) $idLayanan, $selectedLayanans, true) || ($selectedLayanans === [] && $loop->first);
+                            $gambarFallback = $fallbackImages[$namaLayanan] ?? 'fastclean.png';
                         @endphp
-                        <label class="relative cursor-pointer group">
-                            <input type="checkbox" name="id_layanans[]" value="{{ $idLayanan }}" data-harga="{{ $hargaLayanan }}" class="sr-only layanan-checkbox" {{ $isSelected ? 'checked' : '' }}>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-5 md:p-6 hover:border-gray-400 hover:bg-white transition-all h-full flex flex-col justify-between">
-                                <div>
-                                    <div class="flex justify-between items-start mb-3 gap-2">
-                                        <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight leading-tight transition-colors">{{ $namaLayanan }}</h4>
-                                        <div class="selection-indicator w-5 h-5 rounded-md border-2 border-gray-300 flex items-center justify-center mt-1 group-hover:border-gray-400 bg-white shrink-0 transition-colors">
-                                            <i class="fa-solid fa-check radio-dot text-[10px] text-white opacity-0 transform scale-0 transition-all duration-300"></i>
-                                        </div>
-                                    </div>
-                                    <p class="text-[10px] md:text-[11px] text-gray-500 font-medium mb-5 leading-relaxed line-clamp-3">{{ $deskripsiLayanan }}</p>
-                                </div>
-                                <p class="text-gray-900 font-bold text-base md:text-lg tracking-tighter">Rp {{ number_format($hargaLayanan, 0, ',', '.') }} <span class="text-[9px] md:text-[10px] text-gray-400 font-semibold uppercase tracking-widest not-italic">/ Ps</span></p>
-                            </div>
-                        </label>
-                        @endforeach
-                    </div>
-                </div>
-
-                {{-- STEP 2: METODE PENYERAHAN --}}
-                <div>
-                    <h3 class="font-display font-bold text-base md:text-lg uppercase tracking-widest mb-6 flex items-center gap-3 text-gray-900">
-                        <span class="bg-neutral-900 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs shadow-lg">2</span>
-                        Metode Penyerahan
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_layanan" value="Drop-off" class="sr-only delivery-radio" {{ old('metode_layanan', 'Drop-off') == 'Drop-off' ? 'checked' : '' }} required>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight transition-colors">Antar ke Toko</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Bawa langsung sepatu kotor Anda ke bengkel kami.</p>
-                            </div>
-                        </label>
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_layanan" value="Pick-up" class="sr-only delivery-radio" {{ old('metode_layanan') == 'Pick-up' ? 'checked' : '' }}>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight transition-colors">Dijemput Kurir</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Tim kurir kami akan mengambil sepatu ke lokasi Anda.</p>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                {{-- STEP 3: DETAIL & ALAMAT --}}
-                <div>
-                    <h3 class="font-display font-bold text-base md:text-lg uppercase tracking-widest mb-6 flex items-center gap-3 text-gray-900">
-                        <span class="bg-neutral-900 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs shadow-lg">3</span>
-                        Detail Pesanan
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
-                        <div>
-                            <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 ml-2">Jumlah Sepatu (Pasang)</label>
-                            <input type="number" id="jumlah_sepatu" name="jumlah_sepatu" min="1" value="{{ old('jumlah_sepatu', 1) }}" required
-                                   class="input-modern w-full text-gray-900 text-lg rounded-2xl p-4 md:p-5 font-bold shadow-sm">
-                        </div>
-
-                        <div id="areaAlamat" class="hidden transition-all duration-300">
-                            <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 ml-2">Alamat Penjemputan</label>
-                            <textarea name="alamat_jemput" id="alamat_jemput" rows="2" placeholder="Masukkan alamat lengkap penjemputan..."
-                                      class="input-modern w-full text-gray-900 text-sm rounded-2xl p-4 md:p-5 font-medium resize-none shadow-sm">{{ old('alamat_jemput') }}</textarea>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- STEP 4: METODE PENGEMBALIAN --}}
-                <div>
-                    <h3 class="font-display font-bold text-base md:text-lg uppercase tracking-widest mb-6 flex items-center gap-3 text-gray-900">
-                        <span class="bg-neutral-900 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs shadow-lg">4</span>
-                        Metode Pengembalian
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_pengembalian" value="diambil" class="sr-only return-radio" {{ old('metode_pengembalian', 'diambil') == 'diambil' ? 'checked' : '' }} required>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight">Ambil di Toko</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Sepatu diambil langsung di toko setelah selesai dicuci.</p>
-                            </div>
-                        </label>
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_pengembalian" value="diantar" class="sr-only return-radio" {{ old('metode_pengembalian') == 'diantar' ? 'checked' : '' }}>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight">Diantar ke Alamat</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Kurir mengantarkan sepatu selesai ke alamat Anda.</p>
-                            </div>
-                        </label>
-                    </div>
-                    <div id="areaPengantaran" class="hidden mt-5 grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div>
-                            <label for="wa_pengantaran" class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 ml-2">No. WhatsApp Penerima</label>
-                            <input type="tel" id="wa_pengantaran" name="wa_pengantaran" value="{{ old('wa_pengantaran', auth()->user()->no_telp) }}" placeholder="Contoh: 08xxxxxxxxxx" class="input-modern w-full text-gray-900 text-sm rounded-2xl p-4 md:p-5 font-medium shadow-sm">
-                        </div>
-                        <div>
-                            <label for="alamat_pengantaran" class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mb-3 ml-2">Alamat Pengantaran</label>
-                            <textarea id="alamat_pengantaran" name="alamat_pengantaran" rows="2" placeholder="Masukkan alamat lengkap pengantaran..." class="input-modern w-full text-gray-900 text-sm rounded-2xl p-4 md:p-5 font-medium resize-none shadow-sm">{{ old('alamat_pengantaran', auth()->user()->alamat) }}</textarea>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- STEP 4: PEMBAYARAN --}}
-                <div>
-                    <h3 class="font-display font-bold text-base md:text-lg uppercase tracking-widest mb-6 flex items-center gap-3 text-gray-900">
-                        <span class="bg-neutral-900 text-white w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-[10px] md:text-xs shadow-lg">5</span>
-                        Metode Pembayaran
-                    </h3>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_pembayaran" value="cash" class="sr-only payment-radio" {{ in_array(old('metode_pembayaran', 'cash'), ['cash', 'Bayar di Toko'], true) ? 'checked' : '' }} required>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight transition-colors">Bayar di Kasir</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Tunai/QRIS langsung saat serah-terima di bengkel.</p>
-                            </div>
-                        </label>
-
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="metode_pembayaran" value="Payment Gateway" class="sr-only payment-radio" {{ old('metode_pembayaran') == 'Payment Gateway' ? 'checked' : '' }}>
-                            <div class="border-2 border-gray-200 bg-white/60 rounded-2xl p-6 md:p-8 hover:border-gray-400 hover:bg-white transition-all h-full">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-display font-bold text-lg md:text-xl text-gray-800 italic tracking-tight transition-colors">QRIS / Bank (Otomatis)</h4>
-                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center group-hover:border-gray-400 bg-white shrink-0">
-                                        <div class="radio-dot w-2.5 h-2.5 bg-neutral-900 rounded-full opacity-0 transform scale-0 transition-all duration-300"></div>
-                                    </div>
-                                </div>
-                                <p class="text-[10px] md:text-[11px] text-gray-500 font-medium">Pembayaran instan via QRIS, E-Wallet, atau Virtual Account.</p>
-                            </div>
-                        </label>
-                    </div>
-
-                    {{-- Info Box Midtrans --}}
-                    <div id="areaTransfer" class="hidden mt-6 bg-gray-50/80 p-6 md:p-8 rounded-2xl border border-gray-200 transition-all text-center">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Midtrans.png" class="h-6 md:h-8 mx-auto mb-4" alt="Midtrans">
-                        <h4 class="font-bold text-gray-900 uppercase tracking-widest text-xs md:text-sm mb-2">Sistem Pembayaran Terotomatisasi</h4>
-                        <p class="text-[10px] md:text-[11px] text-gray-500 font-medium max-w-lg mx-auto">
-                            Setelah Anda menekan tombol konfirmasi, Anda akan diarahkan ke halaman pembayaran Midtrans. Status pembayaran akan otomatis terverifikasi tanpa perlu upload bukti secara manual.
-                        </p>
-                    </div>
-
-                    {{-- AREA INFO BAYAR DI TOKO --}}
-                    <div id="areaBayarToko" class="hidden mt-6 bg-gray-50 p-6 md:p-8 rounded-2xl border border-gray-200 transition-all">
-                        <div class="flex flex-col md:flex-row items-start gap-5">
-                            <div class="w-12 h-12 rounded-full bg-white border border-gray-200 flex items-center justify-center shrink-0 shadow-sm text-gray-600">
-                                <i class="fa-solid fa-store text-xl"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-gray-900 text-sm md:text-base uppercase tracking-widest mb-2">Panduan Pembayaran Kasir</h4>
-                                <p class="text-[11px] md:text-xs text-gray-500 leading-relaxed font-medium">
-                                    Selesaikan reservasi ini, lalu selesaikan pembayaran secara Tunai (Cash) atau Scan QRIS saat serah terima sepatu di kasir kami.
-                                </p>
+                        <div class="service-option relative" data-service-option data-service-name="{{ $namaLayananLower }}" data-service-category="{{ $kategoriLayanan }}">
+                            <label class="block cursor-pointer">
+                                <input type="checkbox" name="id_layanans[]" value="{{ $idLayanan }}" data-harga="{{ $hargaLayanan }}" data-nama="{{ $namaLayanan }}" class="booking-checkbox sr-only layanan-checkbox" {{ $isSelected ? 'checked' : '' }}>
+                                <span class="booking-service flex h-[296px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white">
+                                    <span class="relative block h-[132px] shrink-0 overflow-hidden bg-slate-100"><img src="{{ $gambarLayanan ? route('media.public', ['path' => $gambarLayanan]) : asset('images/'.$gambarFallback) }}" alt="{{ $namaLayanan }}" class="h-full w-full object-cover {{ $loop->iteration === 2 ? 'scale-110' : '' }}"><span class="booking-check absolute right-2 top-2 grid h-5 w-5 scale-75 place-items-center rounded-full bg-[#17303d] text-[9px] text-white opacity-0 transition"><i class="fa-solid fa-check"></i></span></span>
+                                    <span class="flex flex-1 flex-col p-3"><strong class="block truncate text-xs font-bold text-[#17303d]">{{ $namaLayanan }}</strong><span class="service-description mt-1.5 h-[42px] min-h-[42px] overflow-hidden text-[10px] leading-[14px] text-slate-500">{{ $deskripsiLayanan }}</span><strong class="mt-1.5 block text-xs text-[#17303d]">Rp {{ number_format($hargaLayanan,0,',','.') }} <span class="font-normal text-slate-500">/ pasang</span></strong><span class="mt-auto block rounded-md border border-slate-200 py-2 text-center text-[10px] font-semibold text-slate-600">Pilih Layanan</span></span>
+                                </span>
+                            </label>
+                            <div class="service-quantity mt-2 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 {{ $isSelected ? '' : 'hidden' }}" data-quantity-control>
+                                <label for="jumlah_layanan_{{ $idLayanan }}" class="text-[10px] font-semibold text-slate-600">Jumlah pasang</label>
+                                <span class="flex h-8 items-center overflow-hidden rounded-md border border-slate-200 bg-slate-50">
+                                    <button type="button" data-quantity-minus class="grid h-full w-8 place-items-center text-slate-600 transition hover:bg-slate-200" aria-label="Kurangi jumlah {{ $namaLayanan }}">&minus;</button>
+                                    <input type="number" id="jumlah_layanan_{{ $idLayanan }}" name="jumlah_layanan[{{ $idLayanan }}]" value="{{ $selectedQuantities[$idLayanan] ?? 1 }}" min="1" max="10" inputmode="numeric" required class="h-full w-10 border-x border-slate-200 bg-white text-center text-xs font-semibold text-[#17303d] outline-none" {{ $isSelected ? '' : 'disabled' }}>
+                                    <button type="button" data-quantity-plus class="grid h-full w-8 place-items-center text-slate-600 transition hover:bg-slate-200" aria-label="Tambah jumlah {{ $namaLayanan }}">+</button>
+                                </span>
                             </div>
                         </div>
-                    </div>
+                    @empty
+                        <p class="col-span-full rounded-lg bg-slate-50 py-10 text-center text-xs text-slate-500">Belum ada layanan yang tersedia.</p>
+                    @endforelse
                 </div>
+                <p id="emptySearch" class="hidden py-8 text-center text-xs text-slate-500">Layanan tidak ditemukan.</p>
 
-                {{-- TOTAL & SUBMIT --}}
-                <div class="bg-white border border-gray-100 p-8 md:p-10 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-6 mt-6 shadow-lg shadow-gray-200/50">
-                    <div class="text-center md:text-left">
-                        <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">Total Tagihan</p>
-                        <h2 class="text-4xl md:text-5xl font-display font-bold text-gray-900 italic tracking-tighter" id="totalTagihan">Rp 0</h2>
-                    </div>
-                    <button type="submit" id="btnSubmit" class="btn-gradient w-full md:w-auto px-12 lg:px-16 py-5 lg:py-6 text-white font-bold uppercase text-[10px] md:text-xs tracking-[0.3em] rounded-2xl shadow-lg flex items-center justify-center gap-3">
-                        Lanjut Checkout <i class="fa-solid fa-arrow-right"></i>
-                    </button>
+                <div class="mt-5">
+                    <label class="block"><span class="mb-1.5 block text-[11px] font-semibold text-slate-600">Metode Penyerahan</span><select name="metode_layanan" id="metode_layanan" class="booking-field h-12 w-full rounded-lg px-3 text-xs" required><option value="Drop-off" {{ old('metode_layanan','Drop-off') === 'Drop-off' ? 'selected' : '' }}>Antar ke toko (Drop-off)</option><option value="Pick-up" {{ old('metode_layanan') === 'Pick-up' ? 'selected' : '' }}>Jemput kurir (Pick-up)</option></select></label>
                 </div>
-            </form>
+                <div id="areaAlamat" class="mt-3 hidden"><label for="alamat_jemput" class="mb-1.5 block text-[11px] font-semibold text-slate-600">Alamat Penjemputan</label><textarea name="alamat_jemput" id="alamat_jemput" rows="2" maxlength="255" placeholder="Masukkan alamat lengkap penjemputan..." class="booking-field w-full resize-y rounded-lg px-3 py-2.5 text-[10px]">{{ old('alamat_jemput') }}</textarea></div>
+            </section>
+
+            <aside class="booking-panel rounded-xl p-5 sm:p-6 xl:sticky xl:top-4">
+                <div class="mb-4 flex items-center gap-2.5"><span class="grid h-8 w-8 place-items-center rounded-lg bg-[#eef4f7] text-[#17303d]"><i class="fa-solid fa-calendar-check text-xs"></i></span><div><h2 class="text-base font-bold text-[#17303d]">Detail Reservasi</h2><p class="text-[11px] text-slate-500">Lengkapi informasi reservasi Anda.</p></div></div>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="block"><span class="mb-1.5 block text-[11px] font-semibold text-slate-600">Tanggal Reservasi</span><span class="flex h-12 items-center gap-2 rounded-lg border border-[#dbe5ea] px-2.5"><i class="fa-regular fa-calendar text-slate-500"></i><input type="date" name="tanggal_reservasi" value="{{ old('tanggal_reservasi', now()->toDateString()) }}" min="{{ now()->toDateString() }}" required class="w-full min-w-0 bg-transparent text-[11px] text-[#17303d] outline-none"></span></label>
+                        <div class="rounded-lg border border-slate-100 bg-slate-50 p-2.5"><p class="text-[10px] text-slate-500">Metode Penyerahan</p><p id="summaryDelivery" class="mt-1 truncate text-xs font-semibold text-[#17303d]">{{ old('metode_layanan','Drop-off') === 'Pick-up' ? 'Jemput kurir' : 'Antar ke toko' }}</p></div>
+                    </div>
+
+                    <div id="areaPengantaran" class="hidden space-y-3 rounded-lg border border-slate-100 bg-slate-50 p-3">
+                        <label class="block"><span class="mb-1.5 block text-[11px] font-semibold text-slate-600">No. WhatsApp Penerima</span><input type="tel" id="wa_pengantaran" name="wa_pengantaran" value="{{ old('wa_pengantaran',auth()->user()->no_telp) }}" maxlength="15" placeholder="08xxxxxxxxxx" class="booking-field h-9 w-full rounded-lg px-3 text-[10px]"></label>
+                        <label class="block"><span class="mb-1.5 block text-[11px] font-semibold text-slate-600">Alamat Pengantaran</span><textarea id="alamat_pengantaran" name="alamat_pengantaran" rows="2" maxlength="255" placeholder="Masukkan alamat pengantaran..." class="booking-field w-full resize-y rounded-lg px-3 py-2 text-[10px]">{{ old('alamat_pengantaran',auth()->user()->alamat) }}</textarea></label>
+                    </div>
+
+                    <fieldset><legend class="mb-2 text-[11px] font-semibold text-slate-600">Metode Pengembalian</legend><div class="grid grid-cols-2 gap-2">
+                        <label class="cursor-pointer"><input type="radio" name="metode_pengembalian" value="diambil" class="booking-choice sr-only" {{ old('metode_pengembalian','diambil') === 'diambil' ? 'checked' : '' }} required><span class="booking-choice-card flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 px-2.5 text-[11px] text-slate-600"><i class="fa-solid fa-store"></i>Ambil di toko</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="metode_pengembalian" value="diantar" class="booking-choice sr-only" {{ old('metode_pengembalian') === 'diantar' ? 'checked' : '' }}><span class="booking-choice-card flex min-h-12 items-center gap-2 rounded-lg border border-slate-200 px-2.5 text-[9px] text-slate-600"><i class="fa-solid fa-truck"></i>Diantar</span></label>
+                    </div></fieldset>
+
+                    <label class="block"><span class="mb-1.5 block text-[11px] font-semibold text-slate-600">Catatan Tambahan (Opsional)</span><textarea name="catatan" rows="2" maxlength="500" placeholder="Contoh: sepatu warna putih, ada noda lumpur..." class="booking-field w-full resize-y rounded-lg px-3 py-2.5 text-[10px]">{{ old('catatan') }}</textarea></label>
+
+                    <fieldset><legend class="mb-2 text-[11px] font-semibold text-slate-600">Metode Pembayaran</legend><div class="space-y-2">
+                        <label class="cursor-pointer"><input type="radio" name="metode_pembayaran" value="cash" class="booking-choice sr-only" {{ in_array(old('metode_pembayaran','cash'),['cash','Bayar di Toko'],true) ? 'checked' : '' }} required><span class="booking-choice-card flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5 text-[11px] text-slate-700"><span><i class="fa-solid fa-store mr-2"></i>Bayar di toko</span><i class="fa-solid fa-circle-check text-slate-400"></i></span></label>
+                        <label class="cursor-pointer"><input type="radio" name="metode_pembayaran" value="Payment Gateway" class="booking-choice sr-only" {{ old('metode_pembayaran') === 'Payment Gateway' ? 'checked' : '' }}><span class="booking-choice-card flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2.5 text-[9px] text-slate-700"><span><i class="fa-solid fa-credit-card mr-2"></i>QRIS / Bank (Otomatis)</span><i class="fa-solid fa-circle-check text-slate-400"></i></span></label>
+                    </div></fieldset>
+                    <div id="areaTransfer" class="hidden rounded-lg bg-slate-50 p-3 text-[9px] leading-relaxed text-slate-500"><strong class="mb-1 block text-[#17303d]">Pembayaran otomatis via Midtrans</strong>Setelah reservasi dikirim, Anda akan diarahkan ke halaman pembayaran untuk memilih QRIS, e-wallet, atau transfer bank.</div>
+                    <div id="areaBayarToko" class="hidden rounded-lg bg-slate-50 p-3 text-[9px] leading-relaxed text-slate-500"><strong class="mb-1 block text-[#17303d]">Pembayaran di kasir</strong>Bayar tunai atau QRIS saat menyerahkan sepatu di toko.</div>
+
+                    <div class="border-t border-slate-200 pt-3"><h3 class="mb-2 text-[10px] font-bold text-[#17303d]"><i class="fa-solid fa-receipt mr-1.5"></i>Ringkasan Biaya</h3><div id="summaryLayanan" class="space-y-1.5 text-[9px]"><p class="flex justify-between text-slate-500"><span>Belum ada layanan dipilih</span><span>Rp 0</span></p></div><div class="mt-2 flex justify-between border-t border-slate-100 pt-2 text-[9px] text-slate-500"><span>Jumlah Sepatu</span><strong id="summaryQuantity" class="text-[#17303d]">1 pasang</strong></div><div class="mt-2 flex justify-between text-xs font-extrabold text-[#17303d]"><span>Total</span><span id="totalTagihan">Rp 0</span></div></div>
+                    <button type="submit" id="btnSubmit" class="flex w-full items-center justify-center gap-2 rounded-lg bg-[#10191f] px-4 py-4 text-xs font-bold text-white transition hover:bg-[#244653] disabled:cursor-wait disabled:opacity-60">Konfirmasi Reservasi <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </aside>
+        </form>
         </div>
+        </div>
+        <footer class="shrink-0 border-t border-[#dbe5ea] bg-white px-6 py-4 text-center text-xs text-slate-500">&copy; {{ now()->year }} <span class="font-semibold text-slate-600">ALBRK.SHOESCARE</span></footer>
     </main>
 
-    <footer class="bg-white border-t border-gray-300 py-6 px-6 text-center shrink-0">
-        <p class="text-gray-500 text-xs">&copy; 2026 <span class="font-semibold text-gray-600">ALBRK.SHOESCARE</span></p>
-    </footer>
-
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('formReservasi');
-            const btnSubmit = document.getElementById('btnSubmit');
-            const jumlahInput = document.getElementById('jumlah_sepatu');
-            const totalText = document.getElementById('totalTagihan');
-
-            const areaTransfer = document.getElementById('areaTransfer');
-            const areaBayarToko = document.getElementById('areaBayarToko');
-
-            const areaAlamat = document.getElementById('areaAlamat');
-            const inputAlamat = document.getElementById('alamat_jemput');
-            const areaPengantaran = document.getElementById('areaPengantaran');
-            const inputWaPengantaran = document.getElementById('wa_pengantaran');
-            const inputAlamatPengantaran = document.getElementById('alamat_pengantaran');
-
-            const layananCheckboxes = document.querySelectorAll('input[name="id_layanans[]"]');
-            const paymentRadios = document.querySelectorAll('input[name="metode_pembayaran"]');
-            const deliveryRadios = document.querySelectorAll('input[name="metode_layanan"]');
+            const total = document.getElementById('totalTagihan');
+            const summary = document.getElementById('summaryLayanan');
+            const delivery = document.getElementById('metode_layanan');
+            const pickupArea = document.getElementById('areaAlamat');
+            const returnArea = document.getElementById('areaPengantaran');
             const returnRadios = document.querySelectorAll('input[name="metode_pengembalian"]');
+            const paymentRadios = document.querySelectorAll('input[name="metode_pembayaran"]');
+            const transferArea = document.getElementById('areaTransfer');
+            const cashArea = document.getElementById('areaBayarToko');
+            const formatRupiah = amount => 'Rp ' + new Intl.NumberFormat('id-ID').format(amount);
 
-            function hitungTotal() {
-                let harga = 0;
-                let jumlah = parseInt(jumlahInput.value) || 1;
-                layananCheckboxes.forEach(layanan => {
-                    if (layanan.checked) harga += parseInt(layanan.getAttribute('data-harga')) || 0;
+            function updateSummary() {
+                const selected = [...document.querySelectorAll('.layanan-checkbox:checked')];
+                let sum = 0;
+                let totalPairs = 0;
+                summary.innerHTML = '';
+                if (!selected.length) {
+                    summary.innerHTML = '<p class="flex justify-between text-slate-500"><span>Belum ada layanan dipilih</span><span>Rp 0</span></p>';
+                } else {
+                    selected.forEach(input => {
+                        const price = parseInt(input.dataset.harga, 10) || 0;
+                        const quantityInput = input.closest('[data-service-option]').querySelector('.service-quantity input');
+                        const count = Math.min(10, Math.max(1, parseInt(quantityInput.value, 10) || 1));
+                        const subtotal = price * count;
+                        sum += subtotal;
+                        totalPairs += count;
+                        const line = document.createElement('p');
+                        line.className = 'flex justify-between gap-3 text-slate-500';
+                        const name = document.createElement('span');
+                        name.className = 'truncate pr-2';
+                        name.textContent = `${input.dataset.nama} × ${count}`;
+                        const priceText = document.createElement('span');
+                        priceText.className = 'shrink-0';
+                        priceText.textContent = formatRupiah(subtotal);
+                        line.append(name, priceText);
+                        summary.append(line);
+                    });
+                }
+                total.textContent = formatRupiah(sum);
+                document.getElementById('summaryQuantity').textContent = totalPairs + (totalPairs === 1 ? ' pasang' : ' pasang');
+                document.getElementById('summaryDelivery').textContent = delivery.value === 'Pick-up' ? 'Jemput kurir' : 'Antar ke toko';
+            }
+
+            document.querySelectorAll('.layanan-checkbox').forEach(input => {
+                const quantityControl = input.closest('[data-service-option]').querySelector('[data-quantity-control]');
+                const quantityInput = quantityControl.querySelector('input');
+                const quantityMinus = quantityControl.querySelector('[data-quantity-minus]');
+                const quantityPlus = quantityControl.querySelector('[data-quantity-plus]');
+                const updateServiceQuantity = () => {
+                    quantityControl.classList.toggle('hidden', !input.checked);
+                    quantityInput.disabled = !input.checked;
+                    quantityMinus.disabled = !input.checked;
+                    quantityPlus.disabled = !input.checked;
+                    updateSummary();
+                };
+                input.addEventListener('change', updateServiceQuantity);
+                quantityInput.addEventListener('input', updateSummary);
+                quantityMinus.addEventListener('click', () => {
+                    quantityInput.value = Math.max(1, (parseInt(quantityInput.value, 10) || 1) - 1);
+                    updateSummary();
                 });
-
-                let total = harga * jumlah;
-                totalText.innerText = new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(total);
-            }
-
-            function toggleAlamatArea() {
-                const selectedDelivery = document.querySelector('input[name="metode_layanan"]:checked');
-                if (selectedDelivery && selectedDelivery.value === 'Pick-up') {
-                    areaAlamat.classList.remove('hidden');
-                    inputAlamat.required = true;
-                } else {
-                    areaAlamat.classList.add('hidden');
-                    inputAlamat.required = false;
-                }
-            }
-
-            function togglePengantaranArea() {
-                const selectedReturn = document.querySelector('input[name="metode_pengembalian"]:checked');
-                const needsDelivery = selectedReturn && selectedReturn.value === 'diantar';
-                areaPengantaran.classList.toggle('hidden', !needsDelivery);
-                inputWaPengantaran.required = needsDelivery;
-                inputAlamatPengantaran.required = needsDelivery;
-            }
-
-            function toggleUploadArea() {
-                const selectedPayment = document.querySelector('input[name="metode_pembayaran"]:checked');
-                if (selectedPayment && selectedPayment.value === 'Payment Gateway') {
-                    areaTransfer.classList.remove('hidden');
-                    areaBayarToko.classList.add('hidden');
-                } else if (selectedPayment && selectedPayment.value === 'cash') {
-                    areaBayarToko.classList.remove('hidden');
-                    areaTransfer.classList.add('hidden');
-                } else {
-                    areaTransfer.classList.add('hidden');
-                    areaBayarToko.classList.add('hidden');
-                }
-            }
-
-            form.addEventListener('submit', function() {
-                setTimeout(() => {
-                    btnSubmit.disabled = true;
-                    btnSubmit.innerHTML = 'MEMPROSES... <i class="fa-solid fa-circle-notch fa-spin ml-2"></i>';
-                    btnSubmit.classList.add('opacity-75');
-                }, 50);
+                quantityPlus.addEventListener('click', () => {
+                    quantityInput.value = Math.min(10, (parseInt(quantityInput.value, 10) || 1) + 1);
+                    updateSummary();
+                });
+                updateServiceQuantity();
             });
 
-            layananCheckboxes.forEach(checkbox => checkbox.addEventListener('change', hitungTotal));
-            jumlahInput.addEventListener('input', hitungTotal);
-            paymentRadios.forEach(radio => radio.addEventListener('change', toggleUploadArea));
-            deliveryRadios.forEach(radio => radio.addEventListener('change', toggleAlamatArea));
-            returnRadios.forEach(radio => radio.addEventListener('change', togglePengantaranArea));
+            function updatePickup() {
+                const needsPickup = delivery.value === 'Pick-up';
+                pickupArea.classList.toggle('hidden', !needsPickup);
+                document.getElementById('alamat_jemput').required = needsPickup;
+            }
+            function updateReturn() {
+                const needsDelivery = document.querySelector('input[name="metode_pengembalian"]:checked')?.value === 'diantar';
+                returnArea.classList.toggle('hidden', !needsDelivery);
+                document.getElementById('wa_pengantaran').required = needsDelivery;
+                document.getElementById('alamat_pengantaran').required = needsDelivery;
+            }
+            function updatePayment() {
+                const method = document.querySelector('input[name="metode_pembayaran"]:checked')?.value;
+                transferArea.classList.toggle('hidden', method !== 'Payment Gateway');
+                cashArea.classList.toggle('hidden', method !== 'cash');
+            }
 
-            hitungTotal();
-            toggleAlamatArea();
-            togglePengantaranArea();
-            toggleUploadArea();
+            delivery.addEventListener('change', () => { updatePickup(); updateSummary(); });
+            returnRadios.forEach(input => input.addEventListener('change', updateReturn));
+            paymentRadios.forEach(input => input.addEventListener('change', updatePayment));
+            let activeCategory = 'semua';
+            function applyServiceFilters() {
+                const query = document.getElementById('layananSearch').value.trim().toLocaleLowerCase('id');
+                let visible = 0;
+                document.querySelectorAll('[data-service-option]').forEach(card => {
+                    const matches = card.dataset.serviceName.includes(query) && (activeCategory === 'semua' || card.dataset.serviceCategory === activeCategory);
+                    card.classList.toggle('hidden', !matches);
+                    visible += matches ? 1 : 0;
+                });
+                document.getElementById('emptySearch').classList.toggle('hidden', visible > 0);
+            }
+            document.getElementById('layananSearch').addEventListener('input', applyServiceFilters);
+            document.querySelectorAll('[data-service-filter]').forEach(button => button.addEventListener('click', () => {
+                activeCategory = button.dataset.serviceFilter;
+                document.querySelectorAll('[data-service-filter]').forEach(filter => {
+                    filter.classList.toggle('bg-[#17303d]', filter === button);
+                    filter.classList.toggle('text-white', filter === button);
+                    filter.classList.toggle('bg-slate-100', filter !== button);
+                    filter.classList.toggle('text-slate-500', filter !== button);
+                    filter.classList.toggle('font-semibold', filter === button);
+                });
+                applyServiceFilters();
+            }));
+            form.addEventListener('submit', () => {
+                const button = document.getElementById('btnSubmit');
+                button.disabled = true;
+                button.innerHTML = 'Memproses... <i class="fa-solid fa-circle-notch fa-spin"></i>';
+            });
+
+            updateSummary(); updatePickup(); updateReturn(); updatePayment();
+        });
+        document.addEventListener('click', event => {
+            const menu = document.getElementById('customerProfileMenu');
+            const button = document.getElementById('customerProfileButton');
+            if (menu && button && !menu.contains(event.target) && !button.contains(event.target)) {
+                menu.classList.add('hidden');
+                button.setAttribute('aria-expanded', 'false');
+            }
         });
     </script>
 </body>
 </html>
-

@@ -4,14 +4,16 @@ namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminRequest;
-use App\ViewModels\Admin\UserManagementViewModel;
+use App\Services\Contracts\UserServiceInterface;
+use App\ViewModels\Shared\UserManagementViewModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class SuperAdminUserController extends Controller
 {
     public function __construct(
-        private UserManagementViewModel $userManagementViewModel
+        private UserManagementViewModel $userManagementViewModel,
+        private UserServiceInterface $userService,
     ) {}
 
     /**
@@ -19,16 +21,7 @@ class SuperAdminUserController extends Controller
      */
     public function index(): View
     {
-        $users = $this->userManagementViewModel->getAllUsers();
-
-        $admins = $users->where('role', 'admin')->values();
-        $pelanggans = $users->where('role', 'pelanggan')->values();
-
-        return view('superadmin.users', [
-            'users' => $users,
-            'admins' => $admins,
-            'pelanggans' => $pelanggans,
-        ]);
+        return view('superadmin.pengguna', $this->userManagementViewModel->getSuperAdminPageData());
     }
 
     /**
@@ -36,7 +29,7 @@ class SuperAdminUserController extends Controller
      */
     public function store(StoreAdminRequest $request): RedirectResponse
     {
-        return $this->userManagementViewModel->createUser($request);
+        return $this->resultResponse($this->userService->createUser($request->validated()));
     }
 
     /**
@@ -44,7 +37,7 @@ class SuperAdminUserController extends Controller
      */
     public function update(StoreAdminRequest $request, int $id): RedirectResponse
     {
-        return $this->userManagementViewModel->updateUser($id, $request);
+        return $this->resultResponse($this->userService->updateUser($id, $request->validated()));
     }
 
     /**
@@ -52,7 +45,7 @@ class SuperAdminUserController extends Controller
      */
     public function toggle(int $id): RedirectResponse
     {
-        return $this->userManagementViewModel->toggleUserStatus($id);
+        return $this->resultResponse($this->userService->toggleUserStatus($id));
     }
 
     /**
@@ -60,6 +53,13 @@ class SuperAdminUserController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-        return $this->userManagementViewModel->deleteUser($id);
+        return $this->resultResponse($this->userService->deleteUser($id, (int) auth()->id()));
+    }
+
+    private function resultResponse(array $result): RedirectResponse
+    {
+        return $result['success']
+            ? back()->with('success', $result['message'])
+            : back()->with('error', $result['message'])->withInput();
     }
 }

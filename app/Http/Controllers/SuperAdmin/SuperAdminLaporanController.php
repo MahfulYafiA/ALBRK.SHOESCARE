@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\ViewModels\Admin\LaporanViewModel;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\LaporanIndexRequest;
+use App\ViewModels\Shared\LaporanViewModel;
 use Illuminate\View\View;
 
 class SuperAdminLaporanController extends Controller
@@ -16,9 +16,8 @@ class SuperAdminLaporanController extends Controller
     /**
      * Show laporan page
      */
-    public function index(Request $request): View
+    public function index(LaporanIndexRequest $request): View
     {
-        $data = $this->laporanViewModel->getLaporanData($request);
-        return view('superadmin.laporan', $data);
+        return view('admin.laporan', $this->laporanViewModel->getReportData($request->validated()));
     }
 }

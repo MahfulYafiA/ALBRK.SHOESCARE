@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Admin\StoreOfflineTransactionRequest;
-use App\Repositories\Contracts\LayananRepositoryInterface;
 use App\Services\Contracts\OfflineTransactionServiceInterface;
+use App\ViewModels\Admin\TransaksiViewModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class TransaksiController extends Controller
 {
     public function __construct(
-        private LayananRepositoryInterface $layananRepository,
+        private TransaksiViewModel $transaksiViewModel,
         private OfflineTransactionServiceInterface $offlineTransactionService,
     ) {}
 
@@ -20,8 +20,7 @@ class TransaksiController extends Controller
      */
     public function createOffline(): View
     {
-        $layanans = $this->layananRepository->getActive();
-        return view('admin.transaksi.offline', compact('layanans'));
+        return view('admin.transaksi.transaksi-luring', $this->transaksiViewModel->getCreateData());
     }
 
     /**
@@ -39,6 +38,7 @@ class TransaksiController extends Controller
             return redirect()->route('admin.antrean')->with('success', $result['message']);
         } catch (\Exception $e) {
             report($e);
+
             return back()->with('error', 'Gagal menyimpan transaksi.')->withInput();
         }
     }

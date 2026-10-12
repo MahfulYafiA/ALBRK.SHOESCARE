@@ -3,8 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\ViewModels\Admin\DashboardViewModel;
-use Illuminate\Http\Request;
+use App\ViewModels\Shared\DashboardViewModel;
 use Illuminate\View\View;
 
 class AdminDashboardController extends Controller
@@ -18,7 +17,6 @@ class AdminDashboardController extends Controller
      */
     public function dashboard(): View
     {
-        $stats = $this->dashboardViewModel->getDashboardData();
-        return view('admin.dashboard', compact('stats'));
+        return view('admin.dasbor', $this->dashboardViewModel->getDashboardData());
     }
 }

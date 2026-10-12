@@ -13,25 +13,25 @@ return new class extends Migration
     {
         Schema::create('tr_detail_reservasi', function (Blueprint $table) {
             // PK sesuai ERD
-            $table->increments('id_detail'); 
+            $table->increments('id_detail');
 
             // Foreign Key (Kabel) ke Tabel Reservasi & Layanan
-            $table->unsignedInteger('id_reservasi'); 
-            $table->unsignedInteger('id_layanan'); 
-            
+            $table->unsignedInteger('id_reservasi');
+            $table->unsignedInteger('id_layanan');
+
             // Harga saat transaksi (untuk mengunci history harga)
-            $table->integer('harga'); 
+            $table->integer('harga');
 
             // Definisi Relasi (Kabel)
             $table->foreign('id_reservasi')
-                  ->references('id_reservasi')
-                  ->on('tr_reservasi')
-                  ->onDelete('cascade');
+                ->references('id_reservasi')
+                ->on('tr_reservasi')
+                ->onDelete('cascade');
 
             $table->foreign('id_layanan')
-                  ->references('id_layanan')
-                  ->on('ms_layanan')
-                  ->onDelete('cascade');
+                ->references('id_layanan')
+                ->on('ms_layanan')
+                ->onDelete('cascade');
         });
     }
 

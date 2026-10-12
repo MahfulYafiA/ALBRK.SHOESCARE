@@ -33,12 +33,14 @@ class LayananRepository implements LayananRepositoryInterface
     public function update(Layanan $layanan, array $data): Layanan
     {
         $layanan->update($data);
+
         return $layanan->fresh();
     }
 
     public function delete(int $id): bool
     {
         $layanan = $this->findById($id);
+
         return $layanan ? $layanan->delete() : false;
     }
 }

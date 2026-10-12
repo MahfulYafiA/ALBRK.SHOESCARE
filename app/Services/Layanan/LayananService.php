@@ -5,7 +5,6 @@ namespace App\Services\Layanan;
 use App\DTOs\LayananDTO;
 use App\Repositories\Contracts\LayananRepositoryInterface;
 use App\Services\Contracts\LayananServiceInterface;
-use App\Models\Layanan;
 use Illuminate\Support\Facades\Storage;
 
 class LayananService implements LayananServiceInterface
@@ -17,18 +16,21 @@ class LayananService implements LayananServiceInterface
     public function getAllLayanan(): array
     {
         $layanans = $this->layananRepository->getAll();
-        return $layanans->map(fn($layanan) => LayananDTO::fromModel($layanan)->toArray())->toArray();
+
+        return $layanans->map(fn ($layanan) => LayananDTO::fromModel($layanan)->toArray())->toArray();
     }
 
     public function getActiveLayanan(): array
     {
         $layanans = $this->layananRepository->getActive();
-        return $layanans->map(fn($layanan) => LayananDTO::fromModel($layanan)->toArray())->toArray();
+
+        return $layanans->map(fn ($layanan) => LayananDTO::fromModel($layanan)->toArray())->toArray();
     }
 
     public function findLayanan(int $id): ?array
     {
         $layanan = $this->layananRepository->findById($id);
+
         return $layanan ? LayananDTO::fromModel($layanan)->toArray() : null;
     }
 
@@ -58,7 +60,7 @@ class LayananService implements LayananServiceInterface
     {
         $layanan = $this->layananRepository->findById($id);
 
-        if (!$layanan) {
+        if (! $layanan) {
             return [
                 'success' => false,
                 'message' => 'Layanan tidak ditemukan',

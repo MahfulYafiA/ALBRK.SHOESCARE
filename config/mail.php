@@ -7,7 +7,7 @@ return [
     | Default Mailer
     |--------------------------------------------------------------------------
     |
-    | Tetap gunakan 'log' saat development. 
+    | Tetap gunakan 'log' saat development.
     | Nanti kalau sudah hosting (production), Mas tinggal ganti di .env menjadi 'smtp'.
     |
     */
@@ -21,7 +21,7 @@ return [
     | Global "From" Address
     |--------------------------------------------------------------------------
     |
-    | Di sini kita ganti agar email yang keluar (meskipun cuma di log) 
+    | Di sini kita ganti agar email yang keluar (meskipun cuma di log)
     | terlihat datang dari brand Mas Rofi'i.
     |
     */

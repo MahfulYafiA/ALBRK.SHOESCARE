@@ -14,6 +14,8 @@ interface MidtransServiceInterface
      */
     public function processCallback(array $notification): array;
 
+    public function hasValidCallbackSignature(array $notification): bool;
+
     /**
      * Check transaction status
      */

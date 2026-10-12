@@ -3,8 +3,8 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Reservasi;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\Request;
 
 interface ReservasiRepositoryInterface
 {
@@ -61,7 +61,7 @@ interface ReservasiRepositoryInterface
     /**
      * Get filtered reservations
      */
-    public function getFiltered(Request $request): Collection;
+    public function getFiltered(array $filters): Collection;
 
     /** Get non-cancelled reservations for a report, with optional filters. */
     public function getReport(?string $startDate, ?string $endDate, ?string $status): Collection;
@@ -75,4 +75,20 @@ interface ReservasiRepositoryInterface
      * Get monthly omzet
      */
     public function getMonthlyOmzet(int $year, int $month): int;
+
+    public function getAdminQueue(array $filters): LengthAwarePaginator;
+
+    public function getAdminQueueSummary(): array;
+
+    public function getAdminQueueServices(): Collection;
+
+    public function findAdminQueueItem(int $id): Reservasi;
+
+    public function lockAdminQueueItem(int $id): Reservasi;
+
+    public function getAdminReservations(array $filters): LengthAwarePaginator;
+
+    public function getAdminReservationSummary(): array;
+
+    public function findAdminReservation(int $id): Reservasi;
 }

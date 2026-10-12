@@ -11,7 +11,9 @@ class Layanan extends Model
     use HasFactory;
 
     protected $table = 'ms_layanan';
+
     protected $primaryKey = 'id_layanan';
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -57,6 +59,6 @@ class Layanan extends Model
      */
     public function getFormattedHargaAttribute(): string
     {
-        return 'Rp ' . number_format($this->harga, 0, ',', '.');
+        return 'Rp '.number_format($this->harga, 0, ',', '.');
     }
 }

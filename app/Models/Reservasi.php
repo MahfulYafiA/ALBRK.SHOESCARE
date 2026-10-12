@@ -12,6 +12,7 @@ class Reservasi extends Model
     use HasFactory;
 
     protected $table = 'tr_reservasi';
+
     protected $primaryKey = 'id_reservasi';
 
     protected $fillable = [
@@ -33,10 +34,14 @@ class Reservasi extends Model
         'no_hp',
         'jenis_sepatu',
         'catatan',
+        'alasan_pembatalan',
+        'dibatalkan_oleh',
+        'status_diubah_oleh',
     ];
 
     protected $casts = [
         'tanggal_reservasi' => 'date',
+        'tanggal_bayar' => 'datetime',
         'total_harga' => 'integer',
         'jumlah_sepatu' => 'integer',
     ];
@@ -51,7 +56,7 @@ class Reservasi extends Model
 
     public function getPembayaranAttribute(): ?object
     {
-        if (!$this->status_bayar && !$this->metode_bayar && !$this->tanggal_bayar) {
+        if (! $this->status_bayar && ! $this->metode_bayar && ! $this->tanggal_bayar) {
             return null;
         }
 
@@ -75,6 +80,21 @@ class Reservasi extends Model
         return $this->hasMany(DetailReservasi::class, 'id_reservasi', 'id_reservasi');
     }
 
+    public function pembayaranRecords(): HasMany
+    {
+        return $this->hasMany(Pembayaran::class, 'id_reservasi', 'id_reservasi')->latest('id_pembayaran');
+    }
+
+    public function pembatalOleh(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'dibatalkan_oleh', 'id_user');
+    }
+
+    public function statusDiubahOleh(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'status_diubah_oleh', 'id_user');
+    }
+
     public function getDetailAttribute()
     {
         return $this->relationLoaded('detailReservasis')
@@ -87,7 +107,7 @@ class Reservasi extends Model
      */
     public function isActive(): bool
     {
-        return !in_array($this->status, ['dibatalkan', 'diambil']);
+        return ! in_array($this->status, ['dibatalkan', 'diambil']);
     }
 
     /**
@@ -95,7 +115,7 @@ class Reservasi extends Model
      */
     public function getFormattedTotalAttribute(): string
     {
-        return 'Rp ' . number_format($this->total_harga, 0, ',', '.');
+        return 'Rp '.number_format($this->total_harga, 0, ',', '.');
     }
 
     /**
@@ -103,7 +123,7 @@ class Reservasi extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'menunggu' => 'Menunggu',
             'di_terima' => 'Diterima',
             'sedang_diproses' => 'Sedang Diproses',

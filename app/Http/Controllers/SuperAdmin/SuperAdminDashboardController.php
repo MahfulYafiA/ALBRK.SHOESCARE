@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\ViewModels\Admin\DashboardViewModel;
+use App\ViewModels\Shared\DashboardViewModel;
 use Illuminate\View\View;
 
 class SuperAdminDashboardController extends Controller
@@ -17,7 +17,8 @@ class SuperAdminDashboardController extends Controller
      */
     public function dashboard(): View
     {
-        $stats = $this->dashboardViewModel->getDashboardData();
-        return view('superadmin.dashboard', compact('stats'));
+        $dashboard = $this->dashboardViewModel->getDashboardData();
+
+        return view('superadmin.dasbor', $dashboard);
     }
 }

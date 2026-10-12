@@ -14,7 +14,7 @@ return new class extends Migration
             if (Schema::hasColumn('tr_reservasi', 'jumlah_sepatu')) {
                 $table->dropColumn('jumlah_sepatu');
             }
-            
+
             // Jika kolom id_layanan juga masih ada di tabel ini, hapus juga:
             if (Schema::hasColumn('tr_reservasi', 'id_layanan')) {
                 $table->dropColumn('id_layanan');

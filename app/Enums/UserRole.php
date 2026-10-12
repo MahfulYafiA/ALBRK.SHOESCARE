@@ -10,7 +10,7 @@ enum UserRole: int
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::SUPERADMIN => 'Super Admin',
             self::ADMIN => 'Admin',
             self::PELANGGAN => 'Pelanggan',
@@ -19,7 +19,7 @@ enum UserRole: int
 
     public static function fromId(int $id): self
     {
-        return match($id) {
+        return match ($id) {
             1 => self::SUPERADMIN,
             2 => self::ADMIN,
             3 => self::PELANGGAN,

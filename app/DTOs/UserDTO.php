@@ -44,7 +44,7 @@ class UserDTO
 
     public function getRoleLabel(): string
     {
-        return match($this->role) {
+        return match ($this->role) {
             1 => 'Super Admin',
             2 => 'Admin',
             3 => 'Pelanggan',

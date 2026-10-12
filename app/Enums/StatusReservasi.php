@@ -13,7 +13,7 @@ enum StatusReservasi: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MENUNGGU => 'Menunggu',
             self::DI_TERIMA => 'Diterima',
             self::SEDANG_DIPROSES => 'Sedang Diproses',
@@ -25,7 +25,7 @@ enum StatusReservasi: string
 
     public function color(): string
     {
-        return match($this) {
+        return match ($this) {
             self::MENUNGGU => 'yellow',
             self::DI_TERIMA => 'blue',
             self::SEDANG_DIPROSES => 'purple',

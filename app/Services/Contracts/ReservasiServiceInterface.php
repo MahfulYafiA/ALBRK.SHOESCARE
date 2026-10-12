@@ -24,6 +24,8 @@ interface ReservasiServiceInterface
      */
     public function findReservasi(int $id): ?array;
 
+    public function findReservasiForUser(int $id, int $userId): ?array;
+
     /**
      * Create new reservation
      */
@@ -34,6 +36,8 @@ interface ReservasiServiceInterface
      */
     public function updateReservasi(int $id, array $data): array;
 
+    public function updateReturnForUser(int $id, int $userId, array $data): array;
+
     /**
      * Update status
      */
@@ -42,7 +46,9 @@ interface ReservasiServiceInterface
     /**
      * Cancel reservation
      */
-    public function cancelReservasi(int $id): bool;
+    public function cancelReservasi(int $id, ?int $actorId = null): bool;
+
+    public function cancelForUser(int $id, int $userId): array;
 
     /**
      * Delete reservation

@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { 
-            --primary: #2563eb; 
-            --surface: #f8fafc; 
-            --text: #0f172a; 
+            --primary: #17303d;
+            --surface: #f3f7fa;
+            --text: #17303d;
         }
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -27,8 +27,8 @@
         }
         .bg-mesh {
             position: fixed; inset: 0; z-index: -3;
-            background-color: #f8fafc;
-            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-color: #f3f7fa;
+            background-image: radial-gradient(#dbe5ea 1px, transparent 1px);
             background-size: 32px 32px; 
             opacity: 0.5;
         }
@@ -36,8 +36,8 @@
             position: fixed; border-radius: 50%; filter: blur(140px); z-index: -2;
             animation: floatOrb 15s infinite alternate ease-in-out;
         }
-        .orb-1 { width: 600px; height: 600px; background: rgba(37, 99, 235, 0.15); top: -100px; left: -100px; }
-        .orb-2 { width: 700px; height: 700px; background: rgba(6, 182, 212, 0.15); bottom: -200px; right: -100px; animation-delay: -5s; }
+        .orb-1 { width: 600px; height: 600px; background: rgba(84, 119, 134, 0.12); top: -100px; left: -100px; }
+        .orb-2 { width: 700px; height: 700px; background: rgba(166, 216, 229, 0.3); bottom: -200px; right: -100px; animation-delay: -5s; }
         
         @keyframes floatOrb {
             0% { transform: translate(0, 0) scale(1); }
@@ -51,119 +51,112 @@
         }
         
         .glass-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7));
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 1);
-            box-shadow: 0 24px 48px -12px rgba(31, 38, 135, 0.08);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #dbe5ea;
+            box-shadow: 0 18px 42px -28px rgba(23, 48, 61, 0.3);
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
         }
     </style>
+    @include('shared.pelanggan-shell-styles')
 </head>
-<body class="antialiased flex flex-col min-h-screen relative">
+<body class="antialiased flex min-h-screen overflow-x-hidden relative">
 
     <div class="noise"></div>
     <div class="bg-mesh"></div>
     <div class="orb-1"></div>
     <div class="orb-2"></div>
 
-    <header class="glass-nav px-6 md:px-12 py-4 flex justify-between items-center shrink-0 z-40 sticky top-0">
-        <div class="flex items-center gap-3 md:gap-4">
-            <h1 class="block font-black text-xl md:text-2xl uppercase tracking-tighter italic text-slate-900 leading-tight">
-                ALBRK.<span class="text-indigo-600">CHECKOUT</span>
-            </h1>
-        </div>
-        <div class="hidden sm:block text-right">
-            <p class="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Secure Payment</p>
-        </div>
-    </header>
+    @include('shared.pelanggan-sidebar')
+    <div class="customer-main ml-[218px] flex min-h-screen min-w-0 flex-1 flex-col">
+    @include('shared.pelanggan-header', ['pageTitle' => 'Pembayaran'])
 
-    <main class="flex-1 w-full relative z-10 p-4 md:p-10 lg:p-16 flex flex-col items-center">
-        <div class="w-full max-w-4xl">
+    <main class="relative z-10 flex flex-1 items-center justify-center overflow-y-auto px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-14">
+        <div class="w-full max-w-5xl">
 
-            <div class="mb-10 text-center">
-                <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 px-4 py-1.5 rounded-full mb-4">
-                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-600 animate-pulse"></span>
-                    <p class="text-[8px] md:text-[9px] font-black text-indigo-600 uppercase tracking-[0.4em]">Konfirmasi Pembayaran</p>
+            <div class="mx-auto mb-8 max-w-2xl text-center sm:mb-10">
+                <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#dbe5ea] bg-white/80 px-4 py-2 shadow-sm">
+                    <span class="h-2 w-2 rounded-full bg-[#547786]"></span>
+                    <p class="text-[9px] font-bold uppercase tracking-[0.24em] text-[#547786]">Konfirmasi Pembayaran</p>
                 </div>
-                <h2 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">Selesaikan <span class="text-indigo-600">Pesanan.</span></h2>
-                <p class="text-slate-500 font-medium text-xs md:text-sm mt-3">Lanjutkan proses pembayaran menggunakan QRIS atau Virtual Account pilihan Anda.</p>
+                <h2 class="text-3xl font-extrabold leading-tight tracking-tight text-[#17303d] sm:text-4xl lg:text-5xl">Selesaikan reservasi</h2>
+                <p class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-slate-500">Periksa ringkasan pesanan, lalu lanjutkan pembayaran dengan QRIS atau Virtual Account.</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
-                {{-- KIRI: INFORMASI TAGIHAN --}}
-                <div class="lg:col-span-6 space-y-6">
-                    <div class="glass-card rounded-[2.5rem] p-8 border-indigo-100 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-full -z-10"></div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total yang harus dibayar</p>
-                        <h3 class="text-3xl md:text-4xl font-black text-indigo-600 italic tracking-tighter">Rp {{ number_format($reservasi->total_harga, 0, ',', '.') }}</h3>
-                        <div class="mt-6 pt-6 border-t border-slate-100 space-y-3">
-                            <div class="flex justify-between text-[11px] font-bold uppercase tracking-widest">
-                                <span class="text-slate-400">Order ID</span>
-                                <span class="text-slate-900">#ORD-{{ $reservasi->id_reservasi }}</span>
-                            </div>
-                            <div class="flex justify-between text-[11px] font-bold uppercase tracking-widest">
-                                <span class="text-slate-400">Jumlah Sepatu</span>
-                                <span class="text-slate-900">{{ $reservasi->jumlah_sepatu }} Pasang</span>
-                            </div>
+            <div class="grid items-start gap-5 lg:grid-cols-12 lg:gap-6">
+                <section class="glass-card relative overflow-hidden rounded-3xl p-5 sm:p-7 lg:col-span-5" aria-labelledby="order-summary-title">
+                    <div class="absolute -right-12 -top-14 h-36 w-36 rounded-full bg-[#eef4f7]"></div>
+                    <div class="relative">
+                        <div class="mb-6 flex items-center gap-3">
+                            <span class="grid h-10 w-10 place-items-center rounded-xl bg-[#eef4f7] text-[#17303d]"><i class="fa-solid fa-receipt"></i></span>
+                            <div><h3 id="order-summary-title" class="text-sm font-bold text-[#17303d]">Ringkasan reservasi</h3><p class="mt-0.5 text-xs text-slate-500">Pastikan detail pesanan sudah benar.</p></div>
                         </div>
+                        <p class="text-xs font-semibold text-slate-500">Total pembayaran</p>
+                        <p class="mt-1 text-3xl font-extrabold tracking-tight text-[#17303d] sm:text-4xl">Rp {{ number_format((int) data_get($reservasi, 'total_harga', 0), 0, ',', '.') }}</p>
+                        <dl class="mt-6 divide-y divide-[#e8eef1] rounded-2xl border border-[#e8eef1] bg-white/70 px-4">
+                            <div class="flex items-center justify-between gap-4 py-3 text-sm"><dt class="text-slate-500">Nomor reservasi</dt><dd class="font-bold text-[#17303d]">#ORD-{{ data_get($reservasi, 'id_reservasi', '-') }}</dd></div>
+                            <div class="flex items-center justify-between gap-4 py-3 text-sm"><dt class="text-slate-500">Jumlah sepatu</dt><dd class="font-bold text-[#17303d]">{{ data_get($reservasi, 'jumlah_sepatu', 1) }} pasang</dd></div>
+                            @if(data_get($reservasi, 'detail_layanan'))
+                                <div class="py-3 text-sm"><dt class="text-slate-500">Rincian layanan</dt><dd class="mt-1 text-right font-semibold text-[#17303d]">{{ collect(data_get($reservasi, 'detail_layanan'))->map(fn ($detail) => $detail['nama_layanan'].' × '.$detail['jumlah'].' pasang (Rp '.number_format($detail['sub_total'], 0, ',', '.').')')->join(', ') }}</dd></div>
+                            @endif
+                        </dl>
                     </div>
-                </div>
+                </section>
 
-                {{-- KANAN: TOMBOL MIDTRANS --}}
-                <div class="lg:col-span-6">
-                    <div class="glass-card rounded-[2.5rem] p-8 md:p-12 h-full flex flex-col justify-center items-center text-center">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Midtrans.png" class="h-8 md:h-10 mb-6 drop-shadow-sm" alt="Midtrans">
-                        <h2 class="text-xl md:text-2xl font-black text-slate-900 mb-2 uppercase italic tracking-tight">QRIS & Virtual Account</h2>
-                        <p class="text-[11px] md:text-xs text-slate-500 mb-8 font-medium leading-relaxed">
-                            Sistem akan otomatis mendeteksi pembayaran Anda seketika setelah transaksi berhasil di jendela Midtrans.
-                        </p>
-                        
-                        <button id="pay-button" class="w-full bg-indigo-600 text-white py-5 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-indigo-500/30 hover:bg-slate-900 hover:shadow-slate-900/20 transition-all active:scale-95 flex items-center justify-center gap-3">
-                            Bayar Sekarang <i class="fa-solid fa-qrcode text-lg"></i>
-                        </button>
+                <section class="glass-card rounded-3xl p-5 sm:p-7 lg:col-span-7" aria-labelledby="payment-method-title">
+                    <div class="flex items-start gap-4">
+                        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#17303d] text-white"><i class="fa-solid fa-shield-halved"></i></span>
+                        <div><p class="text-xs font-semibold text-[#547786]">Pembayaran aman</p><h3 id="payment-method-title" class="mt-1 text-lg font-bold text-[#17303d] sm:text-xl">Lanjutkan dengan Midtrans</h3></div>
                     </div>
-                </div>
-
+                    <p class="mt-4 text-sm leading-relaxed text-slate-500">Pilih QRIS, Virtual Account, atau metode lain yang tersedia di halaman checkout Midtrans. Status pembayaran akan diperbarui setelah transaksi dikonfirmasi.</p>
+                    <div class="mt-5 flex flex-wrap gap-2" aria-label="Metode pembayaran tersedia">
+                        <span class="rounded-full border border-[#dbe5ea] bg-[#f7fafb] px-3 py-1.5 text-xs font-semibold text-slate-600"><i class="fa-solid fa-qrcode mr-1.5 text-[#547786]"></i>QRIS</span>
+                        <span class="rounded-full border border-[#dbe5ea] bg-[#f7fafb] px-3 py-1.5 text-xs font-semibold text-slate-600"><i class="fa-solid fa-building-columns mr-1.5 text-[#547786]"></i>Virtual Account</span>
+                    </div>
+                    <button id="pay-button" type="button" class="mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#17303d] px-5 py-4 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-[#244653] focus:outline-none focus:ring-4 focus:ring-[#547786]/20 active:scale-[.99] disabled:cursor-wait disabled:opacity-60">
+                        <span>Bayar sekarang</span><i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <p class="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] text-slate-400"><i class="fa-solid fa-lock"></i>Anda akan diarahkan ke checkout aman Midtrans.</p>
+                </section>
             </div>
 
-            {{-- Footer Link --}}
-            <div class="text-center mt-12 mb-6">
-                <a href="{{ route('reservasi.riwayat') }}" class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-400 hover:text-red-600 transition-colors">Kembali ke Riwayat</a>
-            </div>
         </div>
     </main>
+    <footer class="shrink-0 border-t border-[#dbe5ea] bg-white px-6 py-4 text-center text-xs text-slate-500">&copy; {{ now()->year }} <span class="font-semibold text-slate-600">ALBRK.SHOESCARE</span></footer>
+    </div>
 
     {{-- SCRIPT MIDTRANS --}}
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ env('MIDTRANS_CLIENT_KEY') }}"></script>
+    <script src="{{ config('services.midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('services.midtrans.client_key') }}"></script>
     <script type="text/javascript">
         document.getElementById('pay-button').onclick = function () {
             // Loading State
             const btn = document.getElementById('pay-button');
             const originalText = btn.innerHTML;
             btn.innerHTML = 'MEMPROSES... <i class="fa-solid fa-circle-notch fa-spin ml-2"></i>';
-            btn.classList.replace('bg-indigo-600', 'bg-slate-400');
-            btn.classList.remove('shadow-indigo-500/30');
+            btn.disabled = true;
+            btn.classList.add('cursor-wait');
 
             snap.pay('{{ $snapToken }}', {
                 onSuccess: function (result) { 
-                    window.location.href = "{{ route('reservasi.riwayat') }}"; 
+                    window.location.href = "{{ route('pelanggan.riwayat-reservasi') }}";
                 },
                 onPending: function (result) { 
                     alert("Pembayaran tertunda, silakan selesaikan instruksi pembayaran."); 
                     btn.innerHTML = originalText;
-                    btn.classList.replace('bg-slate-400', 'bg-indigo-600');
-                    btn.classList.add('shadow-indigo-500/30');
+                    btn.disabled = false;
+                    btn.classList.remove('cursor-wait');
                 },
                 onError: function (result) { 
                     alert("Pembayaran gagal atau dibatalkan."); 
                     btn.innerHTML = originalText;
-                    btn.classList.replace('bg-slate-400', 'bg-indigo-600');
-                    btn.classList.add('shadow-indigo-500/30');
+                    btn.disabled = false;
+                    btn.classList.remove('cursor-wait');
                 },
                 onClose: function () {
                     btn.innerHTML = originalText;
-                    btn.classList.replace('bg-slate-400', 'bg-indigo-600');
-                    btn.classList.add('shadow-indigo-500/30');
+                    btn.disabled = false;
+                    btn.classList.remove('cursor-wait');
                 }
             });
         };

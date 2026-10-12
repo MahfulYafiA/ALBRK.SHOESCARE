@@ -5,7 +5,6 @@ namespace App\Services\User;
 use App\DTOs\UserDTO;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\UserServiceInterface;
-use Illuminate\Support\Facades\Hash;
 
 class UserService implements UserServiceInterface
 {
@@ -16,18 +15,21 @@ class UserService implements UserServiceInterface
     public function getAllUsers(): array
     {
         $users = $this->userRepository->getAll();
-        return $users->map(fn($user) => UserDTO::fromModel($user)->toArray())->toArray();
+
+        return $users->map(fn ($user) => UserDTO::fromModel($user)->toArray())->toArray();
     }
 
     public function getUsersByRole(int $role): array
     {
         $users = $this->userRepository->getByRole($role);
-        return $users->map(fn($user) => UserDTO::fromModel($user)->toArray())->toArray();
+
+        return $users->map(fn ($user) => UserDTO::fromModel($user)->toArray())->toArray();
     }
 
     public function findUser(int $id): ?array
     {
         $user = $this->userRepository->findById($id);
+
         return $user ? UserDTO::fromModel($user)->toArray() : null;
     }
 
@@ -54,7 +56,7 @@ class UserService implements UserServiceInterface
     {
         $user = $this->userRepository->findById($id);
 
-        if (!$user) {
+        if (! $user) {
             return [
                 'success' => false,
                 'message' => 'User tidak ditemukan',
@@ -82,9 +84,39 @@ class UserService implements UserServiceInterface
         ];
     }
 
-    public function deleteUser(int $id): bool
+    public function toggleUserStatus(int $id): array
     {
-        return $this->userRepository->delete($id);
+        $user = $this->userRepository->findById($id);
+        if (! $user) {
+            return ['success' => false, 'message' => 'User tidak ditemukan.'];
+        }
+        if ($user->isSuperAdmin()) {
+            return ['success' => false, 'message' => 'Superadmin tidak dapat dinonaktifkan.'];
+        }
+
+        $newStatus = $user->status === 'Aktif' ? 'Nonaktif' : 'Aktif';
+        $this->userRepository->update($user, ['status' => $newStatus]);
+
+        return ['success' => true, 'message' => "User berhasil di{$newStatus}kan."];
+    }
+
+    public function deleteUser(int $id, int $actorId): array
+    {
+        if ($id === $actorId) {
+            return ['success' => false, 'message' => 'Anda tidak dapat menghapus akun sendiri.'];
+        }
+
+        $user = $this->userRepository->findById($id);
+        if (! $user) {
+            return ['success' => false, 'message' => 'User tidak ditemukan.'];
+        }
+        if ($user->isSuperAdmin()) {
+            return ['success' => false, 'message' => 'Superadmin tidak dapat dihapus.'];
+        }
+
+        return $this->userRepository->delete($id)
+            ? ['success' => true, 'message' => 'User berhasil dihapus.']
+            : ['success' => false, 'message' => 'Gagal menghapus user.'];
     }
 
     public function getTotalPelanggan(): int

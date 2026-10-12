@@ -25,11 +25,24 @@ class ProfileService implements ProfileServiceInterface
 
     public function updatePhoto(User $user, UploadedFile $photo): User
     {
-        $this->deleteStoredPhoto($user);
+        $oldPhoto = $user->foto_profil;
+        $newPhoto = $photo->store('profil', 'public');
+        if (! $newPhoto) {
+            throw new \RuntimeException('Foto profil gagal disimpan. Silakan coba lagi.');
+        }
 
-        return $this->userRepository->update($user, [
-            'foto_profil' => $photo->store('profil', 'public'),
-        ]);
+        try {
+            $updatedUser = $this->userRepository->update($user, ['foto_profil' => $newPhoto]);
+        } catch (\Throwable $exception) {
+            Storage::disk('public')->delete($newPhoto);
+            throw $exception;
+        }
+
+        if ($oldPhoto && $oldPhoto !== $newPhoto && Storage::disk('public')->exists($oldPhoto)) {
+            Storage::disk('public')->delete($oldPhoto);
+        }
+
+        return $updatedUser;
     }
 
     public function updatePassword(User $user, string $currentPassword, string $newPassword): bool

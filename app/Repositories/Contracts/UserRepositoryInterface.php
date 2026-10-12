@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface UserRepositoryInterface
@@ -12,10 +13,17 @@ interface UserRepositoryInterface
      */
     public function getAll(): Collection;
 
+    public function getPaginatedAll(int $perPage = 10): LengthAwarePaginator;
+
+    public function countAll(): int;
+
     /**
      * Get users by role
      */
     public function getByRole(int $role): Collection;
+
+    /** Get a paginated user list by role. */
+    public function getPaginatedByRole(int $role, int $perPage = 10): LengthAwarePaginator;
 
     /**
      * Find user by ID

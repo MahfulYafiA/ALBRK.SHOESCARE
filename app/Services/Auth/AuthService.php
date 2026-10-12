@@ -18,8 +18,12 @@ class AuthService implements AuthServiceInterface
     {
         $user = $this->userRepository->findByEmail($email);
 
-        if (!$user || !Hash::check($password, $user->password)) {
+        if (! $user || ! Hash::check($password, $user->password)) {
             return null;
+        }
+
+        if (! $this->isActive($user)) {
+            return ['inactive' => true];
         }
 
         Auth::login($user);
@@ -51,7 +55,15 @@ class AuthService implements AuthServiceInterface
     {
         $user = $this->userRepository->findByEmail($googleUser['email']);
 
-        if (!$user) {
+        if ($user && ! $this->isActive($user)) {
+            return [
+                'user' => $user,
+                'message' => 'Akun Anda nonaktif. Hubungi administrator.',
+                'inactive' => true,
+            ];
+        }
+
+        if (! $user) {
             // Create new user from Google data
             $user = $this->userRepository->create([
                 'nama' => $googleUser['name'],
@@ -60,7 +72,7 @@ class AuthService implements AuthServiceInterface
                 'id_role' => 3, // Default Pelanggan
                 'status' => 'Aktif',
             ]);
-        } elseif (!$user->google_id) {
+        } elseif (! $user->google_id) {
             // Link Google account to existing user
             $this->userRepository->update($user, ['google_id' => $googleUser['id']]);
         }
@@ -76,7 +88,10 @@ class AuthService implements AuthServiceInterface
     public function logout(): void
     {
         Auth::logout();
-        request()->session()->invalidate();
-        request()->session()->regenerateToken();
+    }
+
+    private function isActive(User $user): bool
+    {
+        return strtolower(trim((string) $user->status)) === 'aktif';
     }
 }

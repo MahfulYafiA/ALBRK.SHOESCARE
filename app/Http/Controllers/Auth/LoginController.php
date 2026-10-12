@@ -5,18 +5,15 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\User;
 use App\Services\Contracts\AuthServiceInterface;
-use App\ViewModels\Auth\LoginViewModel;
-use App\ViewModels\Auth\RegisterViewModel;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
 
 class LoginController extends Controller
 {
     public function __construct(
-        private LoginViewModel $loginViewModel,
-        private RegisterViewModel $registerViewModel,
         private AuthServiceInterface $authService
     ) {}
 
@@ -25,7 +22,7 @@ class LoginController extends Controller
      */
     public function showLogin()
     {
-        return view('auth.login');
+        return view('auth.masuk');
     }
 
     /**
@@ -33,7 +30,21 @@ class LoginController extends Controller
      */
     public function login(LoginRequest $request): RedirectResponse
     {
-        return $this->loginViewModel->attemptLogin($request);
+        $result = $this->authService->attemptLogin(
+            $request->validated('email'),
+            $request->validated('password'),
+        );
+        if (! $result) {
+            return back()->with('error', 'Email atau password salah.')->withInput($request->only('email'));
+        }
+
+        if ($result['inactive'] ?? false) {
+            return back()->with('error', 'Akun Anda nonaktif. Hubungi administrator.')->withInput($request->only('email'));
+        }
+
+        $request->session()->regenerate();
+
+        return $this->redirectForUser($result['user'], 'Selamat datang, '.$result['user']->nama.'!');
     }
 
     /**
@@ -41,7 +52,7 @@ class LoginController extends Controller
      */
     public function showRegister()
     {
-        return view('auth.register');
+        return view('auth.daftar');
     }
 
     /**
@@ -49,7 +60,14 @@ class LoginController extends Controller
      */
     public function register(RegisterRequest $request): RedirectResponse
     {
-        return $this->registerViewModel->register($request);
+        $result = $this->authService->register($request->validated());
+        if (! $result['user']) {
+            return back()->with('error', 'Registrasi gagal. Silakan coba lagi.')->withInput();
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->route('pelanggan.dashboard')->with('success', 'Registrasi berhasil! Selamat datang, '.$result['user']->nama.'!');
     }
 
     /**
@@ -63,7 +81,7 @@ class LoginController extends Controller
     /**
      * Handle Google callback
      */
-    public function handleGoogleCallback(): RedirectResponse
+    public function handleGoogleCallback(Request $request): RedirectResponse
     {
         try {
             $googleUser = Socialite::driver('google')->user();
@@ -74,7 +92,15 @@ class LoginController extends Controller
                 'email' => $googleUser->getEmail(),
             ];
 
-            return $this->loginViewModel->handleGoogleCallback($userData);
+            $result = $this->authService->handleGoogleCallback($userData);
+
+            if ($result['inactive'] ?? false) {
+                return redirect()->route('login')->with('error', $result['message']);
+            }
+
+            $request->session()->regenerate();
+
+            return $this->redirectForUser($result['user'], $result['message']);
         } catch (\Exception $e) {
             return redirect()->route('login')->with('error', 'Login dengan Google gagal. Silakan coba lagi.');
         }
@@ -83,9 +109,23 @@ class LoginController extends Controller
     /**
      * Handle logout
      */
-    public function logout(): RedirectResponse
+    public function logout(Request $request): RedirectResponse
     {
         $this->authService->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect()->route('landing')->with('success', 'Anda telah logout.');
+    }
+
+    private function redirectForUser(User $user, string $message): RedirectResponse
+    {
+        $route = match (true) {
+            $user->isSuperAdmin() => 'superadmin.dashboard',
+            $user->isAdmin() => 'admin.dashboard',
+            default => 'pelanggan.dashboard',
+        };
+
+        return redirect()->route($route)->with('success', $message);
     }
 }

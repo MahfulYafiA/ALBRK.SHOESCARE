@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -12,7 +12,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $table = 'ms_user';
+
     protected $primaryKey = 'id_user';
+
     protected $fillable = [
         'nama',
         'email',
@@ -102,7 +104,7 @@ class User extends Authenticatable
      */
     public function getRoleLabelAttribute(): string
     {
-        return match($this->id_role) {
+        return match ($this->id_role) {
             1 => 'Super Admin',
             2 => 'Admin',
             3 => 'Pelanggan',

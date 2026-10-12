@@ -15,8 +15,8 @@ return new class extends Migration
             // ✅ Menambahkan kolom status_bayar setelah kolom 'status'
             // Kita gunakan ENUM agar pilihannya terkunci (Lunas atau Belum Lunas)
             $table->enum('status_bayar', ['Belum Lunas', 'Lunas'])
-                  ->default('Belum Lunas')
-                  ->after('status');
+                ->default('Belum Lunas')
+                ->after('status');
         });
     }
 

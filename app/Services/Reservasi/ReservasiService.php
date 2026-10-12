@@ -3,43 +3,83 @@
 namespace App\Services\Reservasi;
 
 use App\DTOs\ReservasiDTO;
+use App\Models\User;
+use App\Notifications\CustomerActivityNotification;
 use App\Repositories\Contracts\DetailReservasiRepositoryInterface;
 use App\Repositories\Contracts\LayananRepositoryInterface;
+use App\Repositories\Contracts\PembayaranRepositoryInterface;
 use App\Repositories\Contracts\ReservasiRepositoryInterface;
 use App\Services\Contracts\ReservasiServiceInterface;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ReservasiService implements ReservasiServiceInterface
 {
     public function __construct(
         private ReservasiRepositoryInterface $reservasiRepository,
         private LayananRepositoryInterface $layananRepository,
+        private PembayaranRepositoryInterface $pembayaranRepository,
         private DetailReservasiRepositoryInterface $detailReservasiRepository,
     ) {}
 
     public function getAllReservasi(): array
     {
         $reservasis = $this->reservasiRepository->getAll();
-        return $reservasis->map(fn($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
+
+        return $reservasis->map(fn ($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
     }
 
     public function getReservasiByUser(int $userId): array
     {
         $reservasis = $this->reservasiRepository->getByUser($userId);
-        return $reservasis->map(fn($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
+
+        return $reservasis->map(fn ($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
     }
 
     public function getAntrean(): array
     {
         $reservasis = $this->reservasiRepository->getAntrean();
-        return $reservasis->map(fn($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
+
+        return $reservasis->map(fn ($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
     }
 
     public function findReservasi(int $id): ?array
     {
         $reservasi = $this->reservasiRepository->findById($id);
+
         return $reservasi ? ReservasiDTO::fromModel($reservasi)->toArray() : null;
+    }
+
+    public function findReservasiForUser(int $id, int $userId): ?array
+    {
+        $reservasi = $this->findReservasi($id);
+
+        return $reservasi && $reservasi['id_user'] === $userId ? $reservasi : null;
+    }
+
+    public function updateReturnForUser(int $id, int $userId, array $data): array
+    {
+        if (! $this->findReservasiForUser($id, $userId)) {
+            return ['success' => false, 'message' => 'Reservasi tidak ditemukan.'];
+        }
+
+        return $this->updateReservasi($id, $data);
+    }
+
+    public function cancelForUser(int $id, int $userId): array
+    {
+        $reservasi = $this->findReservasiForUser($id, $userId);
+        if (! $reservasi) {
+            return ['success' => false, 'message' => 'Reservasi tidak ditemukan.'];
+        }
+        if (! in_array($reservasi['status'], ['menunggu', 'di_terima'], true)) {
+            return ['success' => false, 'message' => 'Reservasi tidak dapat dibatalkan.'];
+        }
+
+        return $this->cancelReservasi($id, $userId)
+            ? ['success' => true, 'message' => 'Reservasi berhasil dibatalkan.']
+            : ['success' => false, 'message' => 'Gagal membatalkan reservasi.'];
     }
 
     public function createReservasi(array $data): array
@@ -60,51 +100,108 @@ class ReservasiService implements ReservasiServiceInterface
 
                 return $layanan;
             });
-            $jumlahSepatu = (int) ($data['jumlah_sepatu'] ?? 1);
-            $totalHarga = $layanans->sum(fn ($layanan) => $layanan->harga) * $jumlahSepatu;
+            $jumlahPerLayanan = [];
+            foreach ($layanans as $layanan) {
+                $jumlah = (int) ($data['jumlah_layanan'][$layanan->id_layanan] ?? $data['jumlah_layanan'][(string) $layanan->id_layanan] ?? 1);
+                if ($jumlah < 1 || $jumlah > 10) {
+                    throw new \RuntimeException('Jumlah sepatu harus antara 1 dan 10 pasang per layanan.');
+                }
+                $jumlahPerLayanan[$layanan->id_layanan] = $jumlah;
+            }
+            $jumlahSepatu = array_sum($jumlahPerLayanan);
+            $totalHarga = $layanans->sum(fn ($layanan) => $layanan->harga * $jumlahPerLayanan[$layanan->id_layanan]);
 
             // Create reservation
             $reservasi = $this->reservasiRepository->create([
                 'id_user' => $data['id_user'],
-                'tanggal_reservasi' => Carbon::now()->toDateString(),
+                'tanggal_reservasi' => $data['tanggal_reservasi'] ?? Carbon::now()->toDateString(),
                 'jumlah_sepatu' => $jumlahSepatu,
                 'metode_layanan' => $data['metode_layanan'],
                 'alamat_jemput' => $data['alamat_jemput'] ?? null,
                 'metode_pengembalian' => $data['metode_pengembalian'],
                 'status_pengambilan' => $data['metode_pengembalian'] === 'diantar' ? 'diantar' : 'perlu_diambil',
                 'status' => 'menunggu',
-                'status_bayar' => $data['metode_pembayaran'] === 'Payment Gateway' ? 'Belum Lunas' : 'Lunas',
+                'status_bayar' => 'Belum Lunas',
                 'metode_bayar' => $data['metode_pembayaran'] === 'Payment Gateway' ? 'Midtrans' : 'Tunai',
-                'tanggal_bayar' => $data['metode_pembayaran'] === 'Payment Gateway' ? null : Carbon::now(),
+                'tanggal_bayar' => null,
                 'total_harga' => $totalHarga,
                 'wa_pengantaran' => $data['wa_pengantaran'] ?? null,
                 'alamat_pengantaran' => $data['alamat_pengantaran'] ?? null,
                 'catatan' => $data['catatan'] ?? null,
             ]);
 
+            if ($data['metode_pembayaran'] !== 'Payment Gateway') {
+                $this->pembayaranRepository->create([
+                    'id_reservasi' => $reservasi->id_reservasi,
+                    'jumlah' => $totalHarga,
+                    'metode' => strtolower((string) $reservasi->metode_bayar),
+                    'metode_bayar' => $reservasi->metode_bayar,
+                    'status' => 'menunggu',
+                    'tanggal_bayar' => null,
+                ]);
+            }
+
             // Store one detail row for each selected service.
             foreach ($layanans as $layanan) {
+                $jumlahLayanan = $jumlahPerLayanan[$layanan->id_layanan];
                 $this->detailReservasiRepository->create([
                     'id_reservasi' => $reservasi->id_reservasi,
                     'id_layanan' => $layanan->id_layanan,
                     'harga' => $layanan->harga,
-                    'jumlah' => $jumlahSepatu,
-                    'sub_total' => $layanan->harga * $jumlahSepatu,
+                    'jumlah' => $jumlahLayanan,
+                    'sub_total' => $layanan->harga * $jumlahLayanan,
                 ]);
             }
 
             DB::commit();
+
+            try {
+                $reservasi->user?->notify(new CustomerActivityNotification(
+                    'reservasi', 'Reservasi Berhasil Dibuat',
+                    'Reservasi #RSV-'.str_pad((string) $reservasi->id_reservasi, 8, '0', STR_PAD_LEFT).' berhasil dibuat dan menunggu konfirmasi.',
+                    (int) $reservasi->id_reservasi
+                ));
+            } catch (\Throwable $notificationError) {
+                Log::warning('Reservasi tersimpan, tetapi notifikasi gagal dikirim.', [
+                    'id_reservasi' => $reservasi->id_reservasi,
+                    'error' => $notificationError->getMessage(),
+                ]);
+            }
+
+            try {
+                $reservationNumber = '#RSV-'.str_pad((string) $reservasi->id_reservasi, 8, '0', STR_PAD_LEFT);
+                $customerName = $reservasi->user?->nama ?? 'Pelanggan';
+                User::query()
+                    ->where('role', 'admin')
+                    ->where('status', 'Aktif')
+                    ->get()
+                    ->each(fn (User $admin): mixed => $admin->notify(new CustomerActivityNotification(
+                        'reservasi',
+                        'Reservasi Baru',
+                        "{$customerName} membuat reservasi {$reservationNumber} dengan total Rp".number_format((int) $reservasi->total_harga, 0, ',', '.').'.',
+                        (int) $reservasi->id_reservasi,
+                        'Lihat Reservasi',
+                    )));
+            } catch (\Throwable $notificationError) {
+                Log::warning('Reservasi tersimpan, tetapi notifikasi admin gagal dikirim.', [
+                    'id_reservasi' => $reservasi->id_reservasi,
+                    'error' => $notificationError->getMessage(),
+                ]);
+            }
 
             return [
                 'success' => true,
                 'reservasi' => ReservasiDTO::fromModel($reservasi->fresh())->toArray(),
                 'message' => 'Reservasi berhasil dibuat',
             ];
-        } catch (\Exception $e) {
-            DB::rollBack();
+        } catch (\Throwable $e) {
+            if (DB::transactionLevel() > 0) {
+                DB::rollBack();
+            }
+
             return [
                 'success' => false,
-                'message' => 'Gagal membuat reservasi: ' . $e->getMessage(),
+                'message' => 'Gagal membuat reservasi: '.$e->getMessage(),
             ];
         }
     }
@@ -113,7 +210,7 @@ class ReservasiService implements ReservasiServiceInterface
     {
         $reservasi = $this->reservasiRepository->findById($id);
 
-        if (!$reservasi) {
+        if (! $reservasi) {
             return [
                 'success' => false,
                 'message' => 'Reservasi tidak ditemukan',
@@ -133,7 +230,7 @@ class ReservasiService implements ReservasiServiceInterface
     {
         $reservasi = $this->reservasiRepository->findById($id);
 
-        if (!$reservasi) {
+        if (! $reservasi) {
             return [
                 'success' => false,
                 'message' => 'Reservasi tidak ditemukan',
@@ -147,7 +244,21 @@ class ReservasiService implements ReservasiServiceInterface
             $updateData['status_pengambilan'] = 'sudah_diambil';
         }
 
+        $previousStatus = $reservasi->status;
         $reservasi = $this->reservasiRepository->update($reservasi, $updateData);
+        $messages = [
+            'di_terima' => ['Reservasi Anda Telah Dikonfirmasi', 'Reservasi Anda telah dikonfirmasi.'],
+            'sedang_diproses' => ['Reservasi Sedang Diproses', 'Sepatu Anda telah diterima dan sedang dalam proses shoe care.'],
+            'selesai' => ['Reservasi Selesai', 'Reservasi Anda telah selesai dan siap untuk diambil atau diantar.'],
+        ];
+        if ($previousStatus !== $status && isset($messages[$status]) && $reservasi->user) {
+            [$title, $message] = $messages[$status];
+            $reservasi->user->notify(new CustomerActivityNotification(
+                'reservasi', $title,
+                $message.' Nomor reservasi #RSV-'.str_pad((string) $reservasi->id_reservasi, 8, '0', STR_PAD_LEFT).'.',
+                (int) $reservasi->id_reservasi
+            ));
+        }
 
         return [
             'success' => true,
@@ -156,21 +267,21 @@ class ReservasiService implements ReservasiServiceInterface
         ];
     }
 
-    public function cancelReservasi(int $id): bool
+    public function cancelReservasi(int $id, ?int $actorId = null): bool
     {
-        $reservasi = $this->reservasiRepository->findById($id);
+        return DB::transaction(function () use ($id, $actorId): bool {
+            $reservasi = $this->reservasiRepository->lockAdminQueueItem($id);
+            if (! in_array($reservasi->status, ['menunggu', 'di_terima'], true)) {
+                return false;
+            }
 
-        if (!$reservasi) {
-            return false;
-        }
+            $reservasi->status = 'dibatalkan';
+            $reservasi->dibatalkan_oleh = $actorId;
+            $reservasi->status_diubah_oleh = $actorId;
+            $reservasi->save();
 
-        // Only allow cancel if status is waiting or accepted
-        if (!in_array($reservasi->status, ['menunggu', 'di_terima'])) {
-            return false;
-        }
-
-        $this->reservasiRepository->update($reservasi, ['status' => 'dibatalkan']);
-        return true;
+            return true;
+        });
     }
 
     public function deleteReservasi(int $id): bool
@@ -180,9 +291,8 @@ class ReservasiService implements ReservasiServiceInterface
 
     public function getFilteredReservasi(array $filters): array
     {
-        // Convert filters to Request-like format
-        $request = new \Illuminate\Http\Request($filters);
-        $reservasis = $this->reservasiRepository->getFiltered($request);
-        return $reservasis->map(fn($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
+        $reservasis = $this->reservasiRepository->getFiltered($filters);
+
+        return $reservasis->map(fn ($r) => ReservasiDTO::fromModel($r)->toArray())->toArray();
     }
 }

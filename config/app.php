@@ -9,7 +9,7 @@ return [
     | Application Timezone
     |--------------------------------------------------------------------------
     |
-    | Ubah dari UTC ke Asia/Jakarta agar tanggal reservasi & laporan omzet 
+    | Ubah dari UTC ke Asia/Jakarta agar tanggal reservasi & laporan omzet
     | sesuai dengan waktu lokal (WIB).
     |
     */
@@ -34,7 +34,7 @@ return [
     | Faker Locale
     |--------------------------------------------------------------------------
     |
-    | Ubah ke id_ID agar saat membuat data testing (Seeder), 
+    | Ubah ke id_ID agar saat membuat data testing (Seeder),
     | nama dan alamat yang muncul adalah nama orang Indonesia.
     |
     */

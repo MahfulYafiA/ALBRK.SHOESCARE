@@ -8,233 +8,101 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; overflow: hidden; }
-        .glass-panel { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .custom-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-        .custom-scroll::-webkit-scrollbar { display: none; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f7fa; color: #17303d; }
+        .custom-scroll { scrollbar-width: thin; scrollbar-color: #cbd8de transparent; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd8de; border-radius: 8px; }
+    </style>
+    @include('shared.albrk-redesign')
+    <style>
+        html, body { width: 100%; max-width: 100%; overflow-x: hidden !important; }
+        body:has(.admin-sidebar) > main { flex: 1 1 0%; margin-left: 218px; width: calc(100% - 218px); max-width: calc(100% - 218px); overflow-x: hidden !important; }
+        body:has(.admin-sidebar) > main > div { min-width: 0; max-width: 100%; overflow-x: hidden; }
+        @media (max-width: 760px) { body:has(.admin-sidebar) > main { margin-left: 62px; width: calc(100% - 62px); max-width: calc(100% - 62px); } }
     </style>
 </head>
 
-@php
-    $isSuper = auth()->user()->id_role == 1 || auth()->user()->role === 'superadmin';
-    $accent = 'emerald';
 
-    $pengaturanBanner = \Illuminate\Support\Facades\DB::table('ms_pengaturan')->where('key', 'hero_image')->first();
-    $bannerTersimpan = ($pengaturanBanner && $pengaturanBanner->value && \Illuminate\Support\Facades\Storage::disk('public')->exists($pengaturanBanner->value))
-        ? route('media.public', ['path' => $pengaturanBanner->value])
-        : '';
-    $hasBanner = !empty($bannerTersimpan);
+<body class="text-slate-700 antialiased flex h-screen overflow-hidden selection:bg-sky-100 selection:text-[#17303d]">
+    @include('shared.superadmin-sidebar')
 
-    $pengaturanTentang = \Illuminate\Support\Facades\DB::table('ms_pengaturan')->where('key', 'tentang_image')->first();
-    $tentangTersimpan = ($pengaturanTentang && $pengaturanTentang->value && \Illuminate\Support\Facades\Storage::disk('public')->exists($pengaturanTentang->value))
-        ? route('media.public', ['path' => $pengaturanTentang->value])
-        : '';
-    $hasTentang = !empty($tentangTersimpan);
-@endphp
-
-<body class="text-slate-200 antialiased flex h-screen overflow-hidden relative selection:bg-emerald-500 selection:text-white">
-
-    <main class="flex-1 flex flex-col min-w-0 bg-[#0f172a] relative z-10 h-screen">
-
-        <header class="bg-[#0f172a]/40 backdrop-blur-xl border-b border-slate-700/80 px-6 md:px-12 py-4 flex justify-between items-center shrink-0 z-40">
-            <div class="flex items-center gap-3 md:gap-4">
-                <h1 class="block font-black text-xl md:text-2xl uppercase tracking-tighter italic text-white leading-tight">
-                    ALBRK.<span class="text-emerald-500">SUPER</span>
-                </h1>
-            </div>
-            <div class="flex items-center gap-5">
-                <div class="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-800/50 px-3 md:px-4 py-2 rounded-full border border-slate-700 hidden sm:block shadow-inner">
-                    Hari ini: <span class="text-white">{{ now()->format('d M Y') }}</span>
-                </div>
-                <div class="relative">
-                    <button type="button" id="userMenuButton" onclick="document.getElementById('userMenu').classList.toggle('hidden')" class="flex items-center bg-slate-800/40 border border-slate-700 p-1 pr-4 rounded-full shadow-inner hover:border-emerald-500/40 transition-all">
-                        <div class="w-8 h-8 rounded-full overflow-hidden bg-emerald-600 flex items-center justify-center text-[10px] font-black text-white border border-slate-700 shadow-xl shadow-emerald-500/20">
-                            @if(auth()->user()->foto_profil)
-                                <img src="{{ route('profil.foto') }}" alt="Foto profil" class="w-full h-full rounded-full bg-white object-contain p-0.5" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden')">
-                                <span class="hidden">SU</span>
-                            @else
-                                SU
-                            @endif
-                        </div>
-                        <div class="ml-3 hidden md:block">
-                            <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ explode(' ', auth()->user()->nama ?? 'Superadmin')[0] }}</p>
-                            <p class="text-[7px] font-bold text-emerald-400/80 uppercase mt-0.5 tracking-tighter">Akses Pemilik</p>
-                        </div>
-                        <i class="fa-solid fa-chevron-down text-[10px] text-slate-500 ml-3"></i>
-                    </button>
-                    <div id="userMenu" class="hidden absolute right-0 mt-3 w-56 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-2xl shadow-black/30 overflow-hidden z-50">
-                        <a href="{{ route('profil.index') }}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-300 hover:bg-emerald-500/10 hover:text-emerald-300 transition-colors"><i class="fa-solid fa-user-gear w-4 text-center"></i> Profil</a>
-                        <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors text-left"><i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i> Keluar</button></form>
-                    </div>
-                </div>
-            </div>
+    <main class="flex h-screen min-w-0 flex-1 flex-col bg-[#f3f7fa]">
+        <header class="flex shrink-0 items-center justify-between border-b border-[#29424c] bg-[#17303d] px-5 py-3.5 text-white md:px-8 z-40">
+            <div class="flex items-center gap-3 md:gap-4"></div>
+            @include('shared.admin-header-actions')
         </header>
 
-        <div class="p-6 lg:p-12 flex-1 overflow-y-auto custom-scroll relative">
-            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+        <div class="custom-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <div class="mx-auto max-w-[1500px] space-y-6">
+                @if(session('success'))<div role="status" class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>@endif
+                @if(session('error'))<div role="alert" class="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800"><i class="fa-solid fa-circle-exclamation"></i>{{ session('error') }}</div>@endif
+                @if($errors->any())<div role="alert" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
 
-            @if(session('success'))
-                <div class="bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 px-6 py-4 rounded-2xl mb-8 text-xs font-bold shadow-lg flex items-center gap-3 backdrop-blur-sm relative z-10">
-                    <i class="fa-solid fa-circle-check text-lg"></i> {{ session('success') }}
-                </div>
-            @endif
+                <section class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div><p class="text-xs font-semibold uppercase tracking-[.16em] text-sky-700">Katalog & harga</p><h1 class="mt-1 text-2xl font-extrabold tracking-tight text-[#17303d] sm:text-3xl">Master Layanan</h1><p class="mt-2 text-sm text-slate-500">Kelola layanan, harga, dan gambar yang tampil di halaman toko.</p></div>
+                    <button type="button" onclick="openAddModal()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#17303d] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#244653] focus:outline-none focus:ring-2 focus:ring-[#17303d]/30"><i class="fa-solid fa-plus"></i>Tambah layanan</button>
+                </section>
 
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 md:mb-10 relative z-10">
-                <div>
-                    <h1 class="text-3xl md:text-5xl font-black text-white tracking-tighter leading-none mb-2">
-                        Katalog <span class="italic text-{{ $accent }}-400">Layanan</span>
-                    </h1>
-                    <p class="text-slate-400 font-medium text-sm">Kelola daftar harga, layanan, dan banner halaman depan web.</p>
-                </div>
-
-                <button onclick="openAddModal()" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-4 md:py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-1 active:scale-95 shrink-0 group">
-                    <i class="fa-solid fa-plus group-hover:rotate-90 transition-transform"></i> Tambah Layanan Baru
-                </button>
-            </div>
-
-            {{-- BANNER & TENTANG --}}
-            <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-10 relative z-10">
-
-                {{-- BANNER --}}
-                <div class="glass-panel rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden group">
-                    <div class="absolute top-0 left-0 w-48 h-48 bg-emerald-600/10 rounded-full blur-[60px] -translate-y-1/2 -translate-x-1/4 opacity-50"></div>
-                    <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <div class="flex items-center gap-4 w-full sm:w-auto">
-                            <div class="relative w-12 h-12 bg-slate-800 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-slate-700 overflow-hidden shrink-0">
-                                <i id="banner_logo_icon" class="fa-solid fa-image relative z-10 {{ $hasBanner ? 'hidden' : '' }}"></i>
-                                <img id="banner_logo_preview" src="{{ $bannerTersimpan }}" class="absolute inset-0 w-full h-full object-cover z-20 {{ $hasBanner ? '' : 'hidden' }}">
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black uppercase tracking-tight text-white">BANNER WEB</h3>
-                                <p class="text-[8px] text-emerald-400/80 font-bold uppercase tracking-widest mt-1">Gambar Utama Beranda</p>
-                            </div>
-                        </div>
-                        <form action="{{ route('update.hero.universal') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                            @csrf
-                            <div class="relative group/preview w-full sm:w-auto">
-                                <input type="file" name="hero_image" id="hero_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="previewHero(event)" {{ $hasBanner ? '' : 'required' }}>
-                                <div id="hero_preview_container" class="w-full sm:w-40 h-16 sm:h-20 bg-slate-800/50 border-2 {{ $hasBanner ? 'border-emerald-500 border-solid' : 'border-dashed border-slate-700' }} rounded-2xl flex flex-col items-center justify-center overflow-hidden transition-all hover:border-emerald-500 relative shadow-inner">
-                                    <div id="hero_placeholder" class="flex flex-col items-center gap-1 text-center {{ $hasBanner ? 'hidden' : '' }}">
-                                        <i class="fa-solid fa-upload text-slate-500 group-hover/preview:text-emerald-400"></i>
-                                    </div>
-                                    <img id="hero_image_preview" src="{{ $bannerTersimpan }}" class="w-full h-full object-cover absolute inset-0 z-10 {{ $hasBanner ? '' : 'hidden' }}">
-                                    <div id="hero_overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 items-center justify-center {{ $hasBanner ? 'flex' : 'hidden' }}">
-                                        <span class="bg-emerald-600 px-3 py-1.5 rounded-full text-[7px] font-black uppercase text-white shadow-lg">Ganti</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full sm:w-auto bg-slate-800 border border-slate-700 text-white px-6 py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:border-emerald-500 transition-all shadow-lg active:scale-95">Perbarui</button>
+                <section id="pengaturan-sistem" class="grid scroll-mt-6 gap-5 xl:grid-cols-2" aria-label="Gambar halaman utama">
+                    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div class="mb-4 flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-[#17303d]"><i class="fa-regular fa-image"></i></span><div><h2 class="text-sm font-bold text-slate-900">Banner beranda</h2><p class="mt-0.5 text-xs text-slate-500">Gambar utama halaman depan</p></div></div>
+                        <form action="{{ route('update.hero.universal') }}" method="POST" enctype="multipart/form-data" class="space-y-4">@csrf
+                            <label for="hero_input" class="group relative block h-44 cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-slate-50 sm:h-52">
+                                <img id="hero_image_preview" src="{{ $bannerTersimpan }}" alt="Pratinjau banner beranda" class="h-full w-full object-cover {{ $hasBanner ? '' : 'hidden' }}">
+                                <div id="hero_placeholder" class="flex h-full flex-col items-center justify-center gap-2 text-slate-400 {{ $hasBanner ? 'hidden' : '' }}"><i class="fa-solid fa-cloud-arrow-up text-2xl"></i><span class="text-xs font-semibold">Pilih gambar banner</span></div>
+                                <span class="absolute bottom-3 right-3 rounded-lg bg-white/95 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm"><i class="fa-solid fa-camera mr-1.5"></i>Ganti gambar</span>
+                                <input type="file" name="hero_image" id="hero_input" accept="image/jpeg,image/png,image/gif,image/webp" class="sr-only" onchange="previewHero(event)" {{ $hasBanner ? '' : 'required' }}>
+                            </label>
+                            <p class="text-[11px] text-slate-500">JPG, PNG, GIF, atau WebP Â· Maksimal 2 MB</p>
+                            <button type="submit" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan banner</button>
                         </form>
-                    </div>
-                </div>
-
-                {{-- TENTANG --}}
-                <div class="glass-panel rounded-[2rem] p-6 md:p-8 shadow-xl relative overflow-hidden group border-emerald-500/20 hover:border-emerald-500/40 transition-colors">
-                    <div class="absolute top-0 right-0 w-48 h-48 bg-emerald-600/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/4 opacity-50"></div>
-                    <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <div class="flex items-center gap-4 w-full sm:w-auto">
-                            <div class="relative w-12 h-12 bg-slate-800 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shadow-inner border border-slate-700 overflow-hidden shrink-0">
-                                <i id="tentang_logo_icon" class="fa-solid fa-users relative z-10 {{ $hasTentang ? 'hidden' : '' }}"></i>
-                                <img id="tentang_logo_preview" src="{{ $tentangTersimpan }}" class="absolute inset-0 w-full h-full object-cover z-20 {{ $hasTentang ? '' : 'hidden' }}">
-                            </div>
-                            <div>
-                                <h3 class="text-sm font-black uppercase tracking-tight text-white">FOTO TENTANG</h3>
-                                <p class="text-[8px] text-emerald-400/80 font-bold uppercase tracking-widest mt-1">Gambar Profil Toko</p>
-                            </div>
-                        </div>
-                        <form action="{{ route('update.tentang.universal') }}" method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                            @csrf
-                            <div class="relative group/preview w-full sm:w-auto">
-                                <input type="file" name="tentang_image" id="tentang_input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" onchange="previewTentang(event)" {{ $hasTentang ? '' : 'required' }}>
-                                <div id="tentang_preview_container" class="w-full sm:w-40 h-16 sm:h-20 bg-slate-800/50 border-2 {{ $hasTentang ? 'border-emerald-500 border-solid' : 'border-dashed border-slate-700' }} rounded-2xl flex flex-col items-center justify-center overflow-hidden transition-all hover:border-emerald-500 relative shadow-inner">
-                                    <div id="tentang_placeholder" class="flex flex-col items-center gap-1 text-center {{ $hasTentang ? 'hidden' : '' }}">
-                                        <i class="fa-solid fa-upload text-slate-500 group-hover/preview:text-emerald-400"></i>
-                                    </div>
-                                    <img id="tentang_image_preview" src="{{ $tentangTersimpan }}" class="w-full h-full object-cover absolute inset-0 z-10 {{ $hasTentang ? '' : 'hidden' }}">
-                                    <div id="tentang_overlay" class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 items-center justify-center {{ $hasTentang ? 'flex' : 'hidden' }}">
-                                        <span class="bg-emerald-600 px-3 py-1.5 rounded-full text-[7px] font-black uppercase text-white shadow-lg">Ganti</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" class="w-full sm:w-auto bg-slate-800 border border-slate-700 text-white px-6 py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:border-emerald-500 transition-all shadow-lg active:scale-95">Update</button>
+                    </article>
+                    <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                        <div class="mb-4 flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-[#17303d]"><i class="fa-solid fa-store"></i></span><div><h2 class="text-sm font-bold text-slate-900">Foto profil toko</h2><p class="mt-0.5 text-xs text-slate-500">Gambar pada bagian Tentang Kami</p></div></div>
+                        <form action="{{ route('update.tentang.universal') }}" method="POST" enctype="multipart/form-data" class="space-y-4">@csrf
+                            <label for="tentang_input" class="group relative block h-44 cursor-pointer overflow-hidden rounded-xl border border-slate-200 bg-slate-50 sm:h-52">
+                                <img id="tentang_image_preview" src="{{ $tentangTersimpan }}" alt="Pratinjau foto profil toko" class="h-full w-full bg-white object-contain p-4 {{ $hasTentang ? '' : 'hidden' }}">
+                                <div id="tentang_placeholder" class="flex h-full flex-col items-center justify-center gap-2 text-slate-400 {{ $hasTentang ? 'hidden' : '' }}"><i class="fa-solid fa-cloud-arrow-up text-2xl"></i><span class="text-xs font-semibold">Pilih foto profil toko</span></div>
+                                <span class="absolute bottom-3 right-3 rounded-lg bg-white/95 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm"><i class="fa-solid fa-camera mr-1.5"></i>Ganti gambar</span>
+                                <input type="file" name="tentang_image" id="tentang_input" accept="image/jpeg,image/png,image/gif,image/webp" class="sr-only" onchange="previewTentang(event)" {{ $hasTentang ? '' : 'required' }}>
+                            </label>
+                            <p class="text-[11px] text-slate-500">JPG, PNG, GIF, atau WebP Â· Maksimal 2 MB</p>
+                            <button type="submit" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"><i class="fa-solid fa-floppy-disk mr-1.5"></i>Simpan foto toko</button>
                         </form>
-                    </div>
-                </div>
-            </div>
+                    </article>
+                </section>
 
-            {{-- TABEL --}}
-            <div class="glass-panel rounded-3xl shadow-2xl mb-10 relative z-10 overflow-hidden">
-                <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-800/50 border-b border-slate-700 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
-                                <th class="px-4 py-4 whitespace-nowrap">Foto</th>
-                                <th class="px-4 py-4 whitespace-nowrap">Layanan</th>
-                                <th class="px-4 py-4">Deskripsi</th>
-                                <th class="px-4 py-4 whitespace-nowrap">Harga</th>
-                                <th class="px-4 py-4 whitespace-nowrap text-right">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800/50 text-sm">
-                            @forelse($layanans as $l)
-                            <tr class="hover:bg-slate-800/30 transition-all">
-                                <td class="px-4 py-3">
-                                    <div class="flex justify-center">
-                                        @if($l->gambar)
-                                            <img src="{{ route('media.public', ['path' => $l->gambar]) }}" class="w-12 h-12 object-cover rounded-lg shadow border border-slate-700 cursor-pointer hover:ring-2 hover:ring-emerald-500 transition-all" onclick="openEditModal('{{ $l->id_layanan }}', '{{ addslashes($l->nama_layanan) }}', {{ $l->harga }}, '{{ addslashes($l->deskripsi ?? '') }}', '{{ $l->gambar ? route('media.public', ['path' => $l->gambar]) : '' }}')">
-                                        @else
-                                            <button onclick="openEditModal('{{ $l->id_layanan }}', '{{ addslashes($l->nama_layanan) }}', {{ $l->harga }}, '{{ addslashes($l->deskripsi ?? '') }}', '')" class="w-12 h-12 bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center text-slate-500 hover:bg-emerald-500/20 hover:border-emerald-500 hover:text-emerald-400 transition-all">
-                                                <i class="fa-solid fa-plus"></i>
-                                            </button>
-                                        @endif
+                <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <div class="flex flex-col gap-2 border-b border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"><div><h2 class="text-base font-bold text-slate-900">Daftar layanan</h2><p class="mt-1 text-xs text-slate-500">{{ $layanans->count() }} layanan tersedia</p></div><span class="rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-600">Harga per pasang</span></div>
+                    @if($layanans->isNotEmpty())
+                        <div class="grid gap-4 p-4 sm:p-5 md:grid-cols-2 xl:grid-cols-3">
+                            @foreach($layanans as $l)
+                                @php($gambarLayanan = $l->gambar ? route('media.public', ['path' => $l->gambar]) : '')
+                                <article class="group overflow-hidden rounded-xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+                                    <div class="flex gap-4 p-4">
+                                        @if($gambarLayanan)<img src="{{ $gambarLayanan }}" alt="Foto {{ $l->nama_layanan }}" class="h-20 w-20 shrink-0 rounded-lg border border-slate-100 object-cover">@else<span class="grid h-20 w-20 shrink-0 place-items-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-400"><i class="fa-solid fa-image text-xl"></i></span>@endif
+                                        <div class="min-w-0 flex-1"><h3 class="truncate font-bold text-slate-900">{{ $l->nama_layanan }}</h3><p class="mt-1 line-clamp-3 text-xs leading-relaxed text-slate-500">{{ $l->deskripsi ?: 'Belum ada deskripsi layanan.' }}</p></div>
                                     </div>
-                                </td>
-                                <td class="px-4 py-3 font-bold text-white whitespace-nowrap">{{ $l->nama_layanan }}</td>
-                                <td class="px-4 py-3 text-slate-400 text-xs">{{ Str::limit($l->deskripsi, 60) }}</td>
-                                <td class="px-4 py-3 font-bold text-emerald-400 whitespace-nowrap">Rp {{ number_format($l->harga, 0, ',', '.') }}</td>
-                                <td class="px-4 py-3">
-                                    <div class="flex justify-end gap-1.5">
-                                        <button onclick="openEditModal('{{ $l->id_layanan }}', '{{ addslashes($l->nama_layanan) }}', {{ $l->harga }}, '{{ addslashes($l->deskripsi ?? '') }}', '{{ $l->gambar ? route('media.public', ['path' => $l->gambar]) : '' }}')" class="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:bg-emerald-600 hover:text-white border border-slate-700 hover:border-transparent transition-all flex items-center justify-center">
-                                            <i class="fa-solid fa-pen text-xs"></i>
-                                        </button>
-                                        <form action="{{ route('superadmin.layanan.destroy', $l->id_layanan) }}" method="POST" onsubmit="return confirm('Hapus layanan ini beserta foto?');" class="m-0">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-600 hover:text-white border border-red-500/20 transition-all flex items-center justify-center">
-                                                <i class="fa-solid fa-trash text-xs"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="p-12 text-center">
-                                    <div class="flex flex-col items-center opacity-40">
-                                        <i class="fa-solid fa-box-open text-4xl mb-3 text-slate-500"></i>
-                                        <p class="text-xs font-bold uppercase tracking-widest text-slate-500">Belum ada layanan</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                                    <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-4 py-3"><p class="font-extrabold text-[#17303d]">Rp {{ number_format($l->harga, 0, ',', '.') }} <span class="text-[10px] font-medium text-slate-500">/ pasang</span></p><div class="flex items-center gap-2"><button type="button" data-edit-service data-id="{{ $l->id_layanan }}" data-name="{{ $l->nama_layanan }}" data-price="{{ $l->harga }}" data-description="{{ $l->deskripsi }}" data-image="{{ $gambarLayanan }}" class="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700" aria-label="Edit {{ $l->nama_layanan }}"><i class="fa-solid fa-pen text-xs"></i></button><form action="{{ route('superadmin.layanan.destroy', $l->id_layanan) }}" method="POST" onsubmit="return confirm('Hapus layanan ini beserta fotonya?')" class="m-0">@csrf @method('DELETE')<button type="submit" class="grid h-9 w-9 place-items-center rounded-lg border border-rose-200 bg-white text-rose-600 transition hover:bg-rose-50" aria-label="Hapus {{ $l->nama_layanan }}"><i class="fa-regular fa-trash-can text-xs"></i></button></form></div></div>
+                                </article>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="px-6 py-16 text-center"><span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-400"><i class="fa-solid fa-box-open"></i></span><h3 class="mt-3 text-sm font-bold text-slate-800">Belum ada layanan</h3><p class="mt-1 text-xs text-slate-500">Tambahkan layanan pertama untuk ditampilkan di katalog.</p></div>
+                    @endif
+                </section>
             </div>
-
         </div>
-        <footer class="mt-auto w-full shrink-0 border-t border-slate-700/80 bg-[#0f172a]/50 px-6 py-6 text-center">
-            <p class="text-xs text-slate-500">&copy; 2026 <span class="font-semibold text-slate-400">ALBRK.SHOESCARE</span></p>
-        </footer>
+        <footer class="shrink-0 border-t border-[#dbe5ea] bg-white px-6 py-4 text-center text-xs text-slate-500">&copy; {{ now()->year }} <span class="font-semibold text-slate-600">ALBRK.SHOESCARE</span></footer>
     </main>
 
     {{-- MODAL --}}
-    <div id="modalLayanan" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-[2.5rem] shadow-2xl p-8 md:p-10 max-h-[90vh] overflow-y-auto custom-scroll">
-            <div class="flex justify-between items-center mb-8">
-                <h3 id="modalTitle" class="text-2xl font-black uppercase tracking-tight text-white">Tambah <span class="text-emerald-500 italic">Layanan.</span></h3>
-                <button onclick="toggleModal()" class="w-10 h-10 rounded-full bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+    <div id="modalLayanan" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" onclick="if(event.target===this)toggleModal()">
+        <div class="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7 custom-scroll">
+            <div class="mb-6 flex items-start justify-between gap-4">
+                <div><p class="text-xs font-semibold uppercase tracking-wider text-sky-700">Katalog layanan</p><h3 id="modalTitle" class="mt-1 text-xl font-extrabold text-[#17303d]">Tambah layanan</h3></div>
+                <button type="button" onclick="toggleModal()" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50" aria-label="Tutup">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
@@ -242,43 +110,40 @@
                 @csrf
                 <div id="methodField"></div>
 
-                <div class="flex justify-center mb-2">
-                    <div class="relative group/item">
-                        <img id="item_preview" src="" class="hidden w-28 h-28 object-cover rounded-[1.5rem] border-4 border-slate-800 shadow-xl">
-                        <div id="item_placeholder" class="w-28 h-28 bg-slate-800/50 border-2 border-dashed border-slate-700 rounded-[1.5rem] flex flex-col items-center justify-center text-slate-500">
+                <div class="flex justify-center">
+                    <div class="relative">
+                        <img id="item_preview" src="" alt="Pratinjau foto layanan" class="hidden h-28 w-28 rounded-xl border border-slate-200 object-cover">
+                        <div id="item_placeholder" class="grid h-28 w-28 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
                             <i class="fa-solid fa-image text-2xl"></i>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Nama Layanan</label>
-                    <input type="text" name="nama_layanan" id="inputNama" required placeholder="Contoh: Fast Clean" class="w-full bg-slate-800/50 border border-slate-700 px-5 py-4 rounded-xl text-sm font-bold text-white focus:border-emerald-500 focus:bg-slate-800 outline-none transition-all placeholder:text-slate-600">
+                    <label for="inputNama" class="mb-2 block text-xs font-semibold text-slate-700">Nama layanan</label>
+                    <input type="text" name="nama_layanan" id="inputNama" required placeholder="Contoh: Fast Clean" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Harga (Rp)</label>
-                        <input type="number" name="harga" id="inputHarga" required placeholder="35000" class="w-full bg-slate-800/50 border border-slate-700 px-5 py-4 rounded-xl text-sm font-bold text-white focus:border-emerald-500 focus:bg-slate-800 outline-none transition-all placeholder:text-slate-600">
+                        <label for="inputHarga" class="mb-2 block text-xs font-semibold text-slate-700">Harga per pasang (Rp)</label>
+                        <input type="number" name="harga" id="inputHarga" min="0" required placeholder="35000" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Pilih Foto</label>
-                        <div class="relative w-full h-[52px] bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden flex items-center px-4 group/file hover:border-emerald-500 transition-colors mt-2">
-                            <input type="file" name="gambar" id="inputGambar" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="previewItem(event)">
-                            <div class="flex items-center gap-3 text-slate-400 pointer-events-none group-hover/file:text-emerald-400 transition-colors">
-                                <i class="fa-solid fa-image"></i> <span class="text-xs font-bold truncate max-w-[100px]" id="add_file_name">Pilih file...</span>
-                            </div>
-                        </div>
+                        <label for="inputGambar" class="mb-2 block text-xs font-semibold text-slate-700">Foto layanan</label>
+                        <input type="file" name="gambar" id="inputGambar" accept="image/jpeg,image/png,image/gif" class="block h-11 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700" onchange="previewItem(event)">
+                        <span id="add_file_name" class="sr-only">Pilih foto</span>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Deskripsi</label>
-                    <textarea name="deskripsi" id="inputDeskripsi" rows="3" required placeholder="Detail proses pencucian..." class="w-full bg-slate-800/50 border border-slate-700 px-5 py-4 rounded-xl text-sm font-bold text-white h-28 resize-none focus:border-emerald-500 focus:bg-slate-800 outline-none transition-all placeholder:text-slate-600"></textarea>
+                    <label for="inputDeskripsi" class="mb-2 block text-xs font-semibold text-slate-700">Deskripsi</label>
+                    <textarea name="deskripsi" id="inputDeskripsi" rows="3" required placeholder="Jelaskan proses dan bagian sepatu yang dirawat..." class="w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"></textarea>
                 </div>
 
-                <div class="pt-6 mt-6 border-t border-slate-800">
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-[1.2rem] font-black uppercase text-[11px] tracking-widest transition-all shadow-lg shadow-emerald-500/20 active:scale-95">Simpan Perubahan</button>
+                <div class="flex justify-end gap-2 border-t border-slate-100 pt-5">
+                    <button type="button" onclick="toggleModal()" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="rounded-lg bg-[#17303d] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#244653]">Simpan layanan</button>
                 </div>
             </form>
         </div>
@@ -286,61 +151,23 @@
 
     <script>
         function previewHero(event) {
-            const input = event.target;
-            const preview = document.getElementById('hero_image_preview');
-            const placeholder = document.getElementById('hero_placeholder');
-            const overlay = document.getElementById('hero_overlay');
-            const container = document.getElementById('hero_preview_container');
-            const logoIcon = document.getElementById('banner_logo_icon');
-            const logoPreview = document.getElementById('banner_logo_preview');
-
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const resultData = e.target.result;
-                    preview.src = resultData;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    overlay.classList.remove('hidden');
-                    overlay.classList.add('flex');
-                    container.classList.add('border-emerald-500', 'border-solid');
-                    container.classList.remove('border-dashed');
-                    container.classList.remove('border-slate-700');
-                    logoPreview.src = resultData;
-                    logoPreview.classList.remove('hidden');
-                    logoIcon.classList.add('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
+            previewImage(event, 'hero_image_preview', 'hero_placeholder');
         }
 
         function previewTentang(event) {
-            const input = event.target;
-            const preview = document.getElementById('tentang_image_preview');
-            const placeholder = document.getElementById('tentang_placeholder');
-            const overlay = document.getElementById('tentang_overlay');
-            const container = document.getElementById('tentang_preview_container');
-            const logoIcon = document.getElementById('tentang_logo_icon');
-            const logoPreview = document.getElementById('tentang_logo_preview');
+            previewImage(event, 'tentang_image_preview', 'tentang_placeholder');
+        }
 
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const resultData = e.target.result;
-                    preview.src = resultData;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    overlay.classList.remove('hidden');
-                    overlay.classList.add('flex');
-                    container.classList.add('border-emerald-500', 'border-solid');
-                    container.classList.remove('border-dashed');
-                    container.classList.remove('border-slate-700');
-                    logoPreview.src = resultData;
-                    logoPreview.classList.remove('hidden');
-                    logoIcon.classList.add('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
+        function previewImage(event, imageId, placeholderId) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(imageId).src = e.target.result;
+                document.getElementById(imageId).classList.remove('hidden');
+                document.getElementById(placeholderId).classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
         }
 
         function previewItem(event) {
@@ -360,25 +187,27 @@
         }
 
         function openAddModal() {
-            document.getElementById('modalTitle').innerHTML = 'Tambah <span class="text-emerald-500 italic">Layanan.</span>';
+            document.getElementById('modalTitle').textContent = 'Tambah layanan';
             document.getElementById('layananForm').action = "{{ route('superadmin.layanan.store') }}";
             document.getElementById('methodField').innerHTML = '';
             document.getElementById('inputNama').value = '';
             document.getElementById('inputHarga').value = '';
             document.getElementById('inputDeskripsi').value = '';
+            document.getElementById('inputGambar').value = '';
             document.getElementById('item_preview').classList.add('hidden');
             document.getElementById('item_placeholder').classList.remove('hidden');
-            document.getElementById('add_file_name').innerText = 'Pilih file...';
+            document.getElementById('add_file_name').innerText = 'Pilih foto';
             toggleModal();
         }
 
         function openEditModal(id, nama, harga, deskripsi, gambarUrl) {
-            document.getElementById('modalTitle').innerHTML = 'Edit <span class="text-emerald-500 italic">Layanan.</span>';
+            document.getElementById('modalTitle').textContent = 'Edit layanan';
             document.getElementById('layananForm').action = "/superadmin/layanan/" + id;
             document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
             document.getElementById('inputNama').value = nama;
             document.getElementById('inputHarga').value = harga;
-            document.getElementById('inputDeskripsi').value = deskripsi;
+            document.getElementById('inputDeskripsi').value = deskripsi || '';
+            document.getElementById('inputGambar').value = '';
             if(gambarUrl) {
                 document.getElementById('item_preview').src = gambarUrl;
                 document.getElementById('item_preview').classList.remove('hidden');
@@ -387,7 +216,7 @@
                 document.getElementById('item_preview').classList.add('hidden');
                 document.getElementById('item_placeholder').classList.remove('hidden');
             }
-            document.getElementById('add_file_name').innerText = 'Ganti file (Opsional)';
+            document.getElementById('add_file_name').innerText = 'Pilih foto baru (opsional)';
             toggleModal();
         }
 
@@ -398,11 +227,21 @@
             modal.classList.toggle('flex', !isOpen);
             document.body.style.overflow = isOpen ? 'auto' : 'hidden';
         }
+
+        document.querySelectorAll('[data-edit-service]').forEach(button => {
+            button.addEventListener('click', () => openEditModal(
+                button.dataset.id,
+                button.dataset.name,
+                button.dataset.price,
+                button.dataset.description,
+                button.dataset.image
+            ));
+        });
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && !document.getElementById('modalLayanan').classList.contains('hidden')) toggleModal();
+        });
     </script>
 </body>
 </html>
-
-
-
-
 

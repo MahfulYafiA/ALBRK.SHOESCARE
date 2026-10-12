@@ -18,7 +18,7 @@ class PembayaranRepository implements PembayaranRepositoryInterface
 
     public function getByReservasi(int $reservasiId): ?Pembayaran
     {
-        return Pembayaran::where('id_reservasi', $reservasiId)->first();
+        return Pembayaran::where('id_reservasi', $reservasiId)->orderByDesc('id_pembayaran')->first();
     }
 
     public function findById(int $id): ?Pembayaran
@@ -34,6 +34,7 @@ class PembayaranRepository implements PembayaranRepositoryInterface
     public function update(Pembayaran $pembayaran, array $data): Pembayaran
     {
         $pembayaran->update($data);
+
         return $pembayaran->fresh();
     }
 
@@ -47,6 +48,7 @@ class PembayaranRepository implements PembayaranRepositoryInterface
         }
 
         $pembayaran->update($updateData);
+
         return $pembayaran->fresh();
     }
 

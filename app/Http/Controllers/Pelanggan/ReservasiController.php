@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Pelanggan;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reservasi\StoreReservasiRequest;
 use App\Http\Requests\Reservasi\UpdatePengembalianRequest;
+use App\Services\Contracts\MidtransServiceInterface;
+use App\Services\Contracts\ReservasiServiceInterface;
 use App\ViewModels\Pelanggan\DashboardViewModel;
-use App\ViewModels\Pelanggan\PembayaranViewModel;
 use App\ViewModels\Pelanggan\ReservasiViewModel;
-use App\ViewModels\Pelanggan\RiwayatViewModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,14 +18,14 @@ class ReservasiController extends Controller
     public function __construct(
         private DashboardViewModel $dashboardViewModel,
         private ReservasiViewModel $reservasiViewModel,
-        private PembayaranViewModel $pembayaranViewModel,
-        private RiwayatViewModel $riwayatViewModel
+        private ReservasiServiceInterface $reservasiService,
+        private MidtransServiceInterface $midtransService,
     ) {}
 
     /**
      * Show dashboard
      */
-    public function dashboard(): View|RedirectResponse
+    public function dashboard(Request $request): View|RedirectResponse
     {
         if (auth()->user()?->isSuperAdmin()) {
             return redirect()->route('superadmin.dashboard');
@@ -35,8 +35,9 @@ class ReservasiController extends Controller
             return redirect()->route('admin.dashboard');
         }
 
-        $data = $this->dashboardViewModel->getDashboardData();
-        return view('pelanggan.dashboard', $data);
+        $data = $this->dashboardViewModel->getDashboardData((int) $request->user()->getKey());
+
+        return view('pelanggan.dasbor', $data);
     }
 
     /**
@@ -45,6 +46,7 @@ class ReservasiController extends Controller
     public function create(): View
     {
         $layanans = $this->reservasiViewModel->getLayanans();
+
         return view('pelanggan.reservasi.create', compact('layanans'));
     }
 
@@ -53,46 +55,37 @@ class ReservasiController extends Controller
      */
     public function store(StoreReservasiRequest $request): RedirectResponse
     {
-        $reservasi = $this->reservasiViewModel->createReservasi($request);
-
-        if ($reservasi instanceof RedirectResponse) {
-            return $reservasi;
-        }
-
-        if (!$reservasi || !isset($reservasi['id_reservasi'])) {
-            return back()->with('error', 'Gagal membuat reservasi.')->withInput();
+        $data = $request->validated();
+        $data['id_user'] = (int) $request->user()->getKey();
+        $result = $this->reservasiService->createReservasi($data);
+        if (! $result['success'] || ! isset($result['reservasi']['id_reservasi'])) {
+            return back()->with('error', $result['message'] ?? 'Gagal membuat reservasi.')->withInput();
         }
 
         if ($request->metode_pembayaran === 'Payment Gateway') {
-            return redirect()->route('reservasi.pembayaran', $reservasi['id_reservasi']);
+            return redirect()->route('reservasi.pembayaran', $result['reservasi']['id_reservasi']);
         }
 
-        return redirect()->route('reservasi.riwayat')->with('success', 'Reservasi berhasil dibuat!');
+        return redirect()->route('pelanggan.riwayat-reservasi')->with('success', 'Reservasi berhasil dibuat!');
     }
 
     /**
      * Show payment page
      */
-    public function pembayaran(int $id): View
+    public function pembayaran(int $id): View|RedirectResponse
     {
-        $reservasi = $this->pembayaranViewModel->getReservasiForPayment($id);
+        $reservasi = $this->reservasiService->findReservasiForUser($id, (int) auth()->id());
 
-        if (!$reservasi) {
-            return redirect()->route('reservasi.riwayat')->with('error', 'Reservasi tidak ditemukan.');
+        if (! $reservasi) {
+            return redirect()->route('pelanggan.riwayat-reservasi')->with('error', 'Reservasi tidak ditemukan.');
         }
 
-        $snapToken = $this->pembayaranViewModel->generateSnapToken($id);
+        $snapToken = $this->midtransService->getSnapToken($id);
+        if (! $snapToken) {
+            return redirect()->route('pelanggan.riwayat-reservasi')->with('error', 'Pembayaran Midtrans tidak tersedia. Periksa status reservasi atau coba lagi nanti.');
+        }
 
         return view('pelanggan.reservasi.pembayaran', compact('reservasi', 'snapToken'));
-    }
-
-    /**
-     * Show riwayat reservasi
-     */
-    public function riwayat(): View
-    {
-        $riwayat = $this->riwayatViewModel->getRiwayatReservasi();
-        return view('pelanggan.reservasi.riwayat', compact('riwayat'));
     }
 
     /**
@@ -100,7 +93,15 @@ class ReservasiController extends Controller
      */
     public function pilihPengembalian(UpdatePengembalianRequest $request, int $id): RedirectResponse
     {
-        return $this->riwayatViewModel->updatePengembalian($request, $id);
+        $result = $this->reservasiService->updateReturnForUser(
+            $id,
+            (int) $request->user()->getKey(),
+            $request->validated(),
+        );
+
+        return $result['success']
+            ? back()->with('success', 'Metode pengembalian berhasil diperbarui.')
+            : back()->with('error', $result['message']);
     }
 
     /**
@@ -108,6 +109,10 @@ class ReservasiController extends Controller
      */
     public function cancel(int $id): RedirectResponse
     {
-        return $this->riwayatViewModel->cancelReservasi($id);
+        $result = $this->reservasiService->cancelForUser($id, (int) auth()->id());
+
+        return $result['success']
+            ? redirect()->route('pelanggan.riwayat-reservasi')->with('success', $result['message'])
+            : back()->with('error', $result['message']);
     }
 }

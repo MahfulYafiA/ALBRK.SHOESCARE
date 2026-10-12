@@ -3,16 +3,10 @@
 namespace App\ViewModels\Pelanggan;
 
 use App\Services\Contracts\LayananServiceInterface;
-use App\Services\Contracts\ReservasiServiceInterface;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class ReservasiViewModel
 {
-    public function __construct(
-        private LayananServiceInterface $layananService,
-        private ReservasiServiceInterface $reservasiService
-    ) {}
+    public function __construct(private LayananServiceInterface $layananService) {}
 
     /**
      * Get available services
@@ -20,30 +14,5 @@ class ReservasiViewModel
     public function getLayanans(): array
     {
         return $this->layananService->getActiveLayanan();
-    }
-
-    /**
-     * Create new reservation
-     */
-    public function createReservasi(Request $request)
-    {
-        $result = $this->reservasiService->createReservasi([
-            'id_user' => auth()->id(),
-            'id_layanans' => $request->input('id_layanans', []),
-            'jumlah_sepatu' => $request->jumlah_sepatu ?? 1,
-            'metode_layanan' => $request->metode_layanan,
-            'alamat_jemput' => $request->alamat_jemput,
-            'metode_pengembalian' => $request->metode_pengembalian,
-            'wa_pengantaran' => $request->wa_pengantaran,
-            'alamat_pengantaran' => $request->alamat_pengantaran,
-            'catatan' => $request->catatan,
-            'metode_pembayaran' => $request->metode_pembayaran,
-        ]);
-
-        if (!$result['success']) {
-            return back()->with('error', $result['message'])->withInput();
-        }
-
-        return $result['reservasi'];
     }
 }

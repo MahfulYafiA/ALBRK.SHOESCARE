@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+
 return [
 
     /*
@@ -31,8 +33,8 @@ return [
     | User Providers
     |--------------------------------------------------------------------------
     |
-    | Provider ini menggunakan Eloquent dan Model User. 
-    | Karena di Model User sudah kita set: protected $table = 'ms_user', 
+    | Provider ini menggunakan Eloquent dan Model User.
+    | Karena di Model User sudah kita set: protected $table = 'ms_user',
     | maka secara otomatis Laravel akan mencari ke tabel ms_user.
     |
     */
@@ -40,7 +42,7 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => User::class,
         ],
     ],
 

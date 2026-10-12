@@ -15,7 +15,9 @@ class ProfileController extends Controller
 
     public function index()
     {
-        return view('profil.index', ['user' => Auth::user()]);
+        $user = Auth::user();
+
+        return view('profil.pelanggan', compact('user'));
     }
 
     public function foto()
@@ -35,7 +37,13 @@ class ProfileController extends Controller
 
     public function updateFoto(UpdateProfilePhotoRequest $request)
     {
-        $this->profileService->updatePhoto(Auth::user(), $request->file('foto_profil'));
+        try {
+            $this->profileService->updatePhoto(Auth::user(), $request->file('foto_profil'));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->withErrors(['foto_profil' => 'Foto gagal disimpan. Foto sebelumnya tetap digunakan.']);
+        }
 
         return back()->with('success', 'Foto profil baru berhasil dipasang!');
     }

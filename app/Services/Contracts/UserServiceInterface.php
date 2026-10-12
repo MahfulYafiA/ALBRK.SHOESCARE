@@ -32,7 +32,9 @@ interface UserServiceInterface
     /**
      * Delete user
      */
-    public function deleteUser(int $id): bool;
+    public function toggleUserStatus(int $id): array;
+
+    public function deleteUser(int $id, int $actorId): array;
 
     /**
      * Get total pelanggan

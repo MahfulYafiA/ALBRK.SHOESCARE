@@ -13,30 +13,30 @@ return new class extends Migration
     {
         Schema::create('tr_pembayaran', function (Blueprint $table) {
             // Primary Key sesuai ERD
-            $table->increments('id_pembayaran'); 
+            $table->increments('id_pembayaran');
 
             // Foreign Key ke tabel tr_reservasi
-            $table->unsignedInteger('id_reservasi'); 
-            
+            $table->unsignedInteger('id_reservasi');
+
             $table->string('metode_pembayaran', 50);
-            
+
             // ✅ UPDATE: Tambahkan ->nullable() agar bisa kosong di awal pesanan
             $table->dateTime('tanggal_bayar')->nullable();
-            
+
             $table->string('status_pembayaran', 50);
-            
+
             // ✅ UPDATE: Tambahkan ->nullable() agar bisa kosong di awal pesanan
             // Menggunakan VARCHAR 150 sesuai kesepakatan Strict UMKM
-            $table->string('bukti_pembayaran', 150)->nullable(); 
+            $table->string('bukti_pembayaran', 150)->nullable();
 
             // Timestamps opsional, tapi bagus untuk audit
-            $table->timestamps(); 
+            $table->timestamps();
 
             // Pemasangan Kabel Relasi
             $table->foreign('id_reservasi')
-                  ->references('id_reservasi')
-                  ->on('tr_reservasi')
-                  ->onDelete('cascade');
+                ->references('id_reservasi')
+                ->on('tr_reservasi')
+                ->onDelete('cascade');
         });
     }
 

@@ -4,6 +4,7 @@ namespace App\Services\Transaction;
 
 use App\Repositories\Contracts\DetailReservasiRepositoryInterface;
 use App\Repositories\Contracts\LayananRepositoryInterface;
+use App\Repositories\Contracts\PembayaranRepositoryInterface;
 use App\Repositories\Contracts\ReservasiRepositoryInterface;
 use App\Services\Contracts\OfflineTransactionServiceInterface;
 use Carbon\Carbon;
@@ -13,6 +14,7 @@ class OfflineTransactionService implements OfflineTransactionServiceInterface
 {
     public function __construct(
         private LayananRepositoryInterface $layananRepository,
+        private PembayaranRepositoryInterface $pembayaranRepository,
         private ReservasiRepositoryInterface $reservasiRepository,
         private DetailReservasiRepositoryInterface $detailReservasiRepository,
     ) {}
@@ -44,6 +46,15 @@ class OfflineTransactionService implements OfflineTransactionServiceInterface
                 'metode_bayar' => $data['metode_bayar'],
                 'total_harga' => $totalHarga,
                 'catatan' => $data['catatan'] ?? null,
+            ]);
+
+            $this->pembayaranRepository->create([
+                'id_reservasi' => $reservasi->id_reservasi,
+                'jumlah' => $totalHarga,
+                'metode' => strtolower((string) $reservasi->metode_bayar),
+                'metode_bayar' => $reservasi->metode_bayar,
+                'status' => 'lunas',
+                'tanggal_bayar' => Carbon::now(),
             ]);
 
             $this->detailReservasiRepository->create([

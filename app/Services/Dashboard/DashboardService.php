@@ -2,7 +2,6 @@
 
 namespace App\Services\Dashboard;
 
-use App\DTOs\DashboardStatsDTO;
 use App\Repositories\Contracts\ReservasiRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\Contracts\DashboardServiceInterface;
@@ -37,6 +36,10 @@ class DashboardService implements DashboardServiceInterface
             'diproses' => $reservasis->whereIn('status', ['di_terima', 'sedang_diproses'])->count(),
             'selesai' => $reservasis->where('status', 'selesai')->count(),
             'dibatalkan' => $reservasis->where('status', 'dibatalkan')->count(),
+            'total_transaksi' => $reservasis
+                ->where('status_bayar', 'Lunas')
+                ->where('status', '!=', 'dibatalkan')
+                ->sum('total_harga'),
         ];
     }
 
@@ -48,7 +51,7 @@ class DashboardService implements DashboardServiceInterface
             'year' => $year,
             'month' => $month,
             'omzet' => $omzet,
-            'formatted_omzet' => 'Rp ' . number_format($omzet, 0, ',', '.'),
+            'formatted_omzet' => 'Rp '.number_format($omzet, 0, ',', '.'),
         ];
     }
 
@@ -69,7 +72,7 @@ class DashboardService implements DashboardServiceInterface
         return [
             'year' => $year,
             'total_omzet' => $totalOmzet,
-            'formatted_omzet' => 'Rp ' . number_format($totalOmzet, 0, ',', '.'),
+            'formatted_omzet' => 'Rp '.number_format($totalOmzet, 0, ',', '.'),
             'monthly' => $monthlyData,
         ];
     }

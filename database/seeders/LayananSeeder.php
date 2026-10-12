@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Layanan;
+use Illuminate\Database\Seeder;
 
 class LayananSeeder extends Seeder
 {

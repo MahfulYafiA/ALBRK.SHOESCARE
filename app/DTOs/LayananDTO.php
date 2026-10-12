@@ -41,6 +41,6 @@ class LayananDTO
 
     public function getFormattedHarga(): string
     {
-        return 'Rp ' . number_format($this->harga, 0, ',', '.');
+        return 'Rp '.number_format($this->harga, 0, ',', '.');
     }
 }

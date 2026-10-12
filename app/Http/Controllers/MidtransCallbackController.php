@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MidtransCallbackRequest;
 use App\Services\Contracts\MidtransServiceInterface;
-use Illuminate\Http\Request;
 
 class MidtransCallbackController extends Controller
 {
@@ -14,14 +14,19 @@ class MidtransCallbackController extends Controller
     /**
      * Handle Midtrans callback/webhook
      */
-    public function callback(Request $request)
+    public function callback(MidtransCallbackRequest $request)
     {
-        $result = $this->midtransService->handleCallback($request);
+        $payload = $request->validated();
+        if (! $this->midtransService->hasValidCallbackSignature($payload)) {
+            return response()->json(['success' => false, 'message' => 'Signature not valid'], 403);
+        }
 
-        if ($result) {
+        $result = $this->midtransService->processCallback($payload);
+
+        if (($result['success'] ?? false) === true) {
             return response()->json(['success' => true]);
         }
 
-        return response()->json(['success' => false], 400);
+        return response()->json(['success' => false, 'message' => $result['message'] ?? 'Callback gagal diproses'], 400);
     }
 }

@@ -9,7 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (!Schema::hasTable('ms_user') || !Schema::hasColumn('ms_user', 'id_role')) {
+        if (! Schema::hasTable('ms_user') || ! Schema::hasColumn('ms_user', 'id_role')) {
             return;
         }
 
@@ -26,7 +26,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (!Schema::hasTable('ms_user') || Schema::hasColumn('ms_user', 'id_role')) {
+        if (! Schema::hasTable('ms_user') || Schema::hasColumn('ms_user', 'id_role')) {
             return;
         }
 

@@ -3,56 +3,42 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\UpdateStatusRequest;
+use App\Http\Requests\Admin\AntreanIndexRequest;
+use App\Http\Requests\Admin\CancelAntreanRequest;
+use App\Http\Requests\Admin\UpdateAntreanStatusRequest;
+use App\Services\Contracts\AntreanServiceInterface;
 use App\ViewModels\Admin\AntreanViewModel;
-use App\ViewModels\Admin\DashboardViewModel;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AntreanController extends Controller
 {
     public function __construct(
         private AntreanViewModel $antreanViewModel,
-        private DashboardViewModel $dashboardViewModel
+        private AntreanServiceInterface $antreanService,
     ) {}
 
-    /**
-     * Show antrean page
-     */
-    public function index(): View
+    public function index(AntreanIndexRequest $request): View
     {
-        $reservasis = $this->antreanViewModel->getAntrean();
-        $stats = $this->dashboardViewModel->getDashboardData();
-
-        return view('admin.antrean', compact('reservasis', 'stats'));
+        return view('admin.antrean.index', $this->antreanViewModel->getIndexData($request->validated()));
     }
 
-    /**
-     * Update reservation status
-     */
-    public function updateStatus(UpdateStatusRequest $request, int $id): RedirectResponse
+    public function show(int $id): View
     {
-        $result = $this->antreanViewModel->updateStatus($id, $request->status);
-
-        if ($result['success']) {
-            return back()->with('success', $result['message']);
-        }
-
-        return back()->with('error', $result['message']);
+        return view('admin.antrean.show', ['reservasi' => $this->antreanViewModel->find($id)]);
     }
 
-    /**
-     * Delete reservation
-     */
-    public function destroy(int $id): RedirectResponse
+    public function updateStatus(UpdateAntreanStatusRequest $request, int $id): RedirectResponse
     {
-        $result = $this->antreanViewModel->deleteReservasi($id);
+        $this->antreanService->updateStatus($id, $request->validated('status'), (int) $request->user()->getKey());
 
-        if ($result) {
-            return back()->with('success', 'Reservasi berhasil dihapus.');
-        }
+        return back()->with('success', 'Status reservasi berhasil diperbarui.');
+    }
 
-        return back()->with('error', 'Gagal menghapus reservasi.');
+    public function cancel(CancelAntreanRequest $request, int $id): RedirectResponse
+    {
+        $this->antreanService->cancel($id, $request->validated('alasan_pembatalan'), (int) $request->user()->getKey());
+
+        return redirect()->route('admin.antrean.show', $id)->with('success', 'Reservasi dibatalkan dan alasannya disimpan.');
     }
 }

@@ -11,12 +11,14 @@ class Pembayaran extends Model
     use HasFactory;
 
     protected $table = 'tr_pembayaran';
+
     protected $primaryKey = 'id_pembayaran';
 
     protected $fillable = [
         'id_reservasi',
         'jumlah',
         'metode',
+        'metode_bayar',
         'status',
         'tanggal_bayar',
         'bukti_pembayaran',
@@ -28,6 +30,7 @@ class Pembayaran extends Model
     protected $casts = [
         'jumlah' => 'integer',
         'tanggal_bayar' => 'datetime',
+        'diproses_pada' => 'datetime',
     ];
 
     /**
@@ -36,6 +39,11 @@ class Pembayaran extends Model
     public function reservasi(): BelongsTo
     {
         return $this->belongsTo(Reservasi::class, 'id_reservasi', 'id_reservasi');
+    }
+
+    public function processedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'diproses_oleh', 'id_user');
     }
 
     /**
@@ -51,7 +59,7 @@ class Pembayaran extends Model
      */
     public function getFormattedJumlahAttribute(): string
     {
-        return 'Rp ' . number_format($this->jumlah, 0, ',', '.');
+        return 'Rp '.number_format($this->jumlah, 0, ',', '.');
     }
 
     /**
@@ -59,7 +67,7 @@ class Pembayaran extends Model
      */
     public function getStatusLabelAttribute(): string
     {
-        return match($this->status) {
+        return match ($this->status) {
             'menunggu' => 'Menunggu',
             'lunas' => 'Lunas',
             'gagal' => 'Gagal',

@@ -2,40 +2,28 @@
 
 namespace App\ViewModels\Admin;
 
+use App\Models\Reservasi;
 use App\Repositories\Contracts\ReservasiRepositoryInterface;
-use App\Services\Contracts\ReservasiServiceInterface;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class AntreanViewModel
 {
     public function __construct(
-        private ReservasiServiceInterface $reservasiService,
         private ReservasiRepositoryInterface $reservasiRepository,
     ) {}
 
-    /**
-     * Get antrean data
-     */
-    public function getAntrean(): Collection
+    public function getIndexData(array $filters): array
     {
-        return $this->reservasiRepository->getAntrean();
+        return [
+            'reservasis' => $this->reservasiRepository->getAdminQueue($filters),
+            'stats' => $this->reservasiRepository->getAdminQueueSummary(),
+            'layanans' => $this->reservasiRepository->getAdminQueueServices(),
+            'filters' => $filters,
+            'sort' => $filters['sort'] ?? 'terbaru',
+        ];
     }
 
-    /**
-     * Update status
-     */
-    public function updateStatus(int $id, string $status): array
+    public function find(int $id): Reservasi
     {
-        return $this->reservasiService->updateStatus($id, $status);
-    }
-
-    /**
-     * Delete reservation
-     */
-    public function deleteReservasi(int $id): bool
-    {
-        return $this->reservasiService->deleteReservasi($id);
+        return $this->reservasiRepository->findAdminQueueItem($id);
     }
 }

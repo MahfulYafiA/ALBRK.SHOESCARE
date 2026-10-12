@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::table('tr_detail_reservasi', function (Blueprint $table) {
             // ✅ Menambahkan kolom yang dibutuhkan untuk menyimpan detail pesanan
             // Kita cek dulu supaya tidak error kalau kolomnya ternyata sudah ada
-            if (!Schema::hasColumn('tr_detail_reservasi', 'harga')) {
+            if (! Schema::hasColumn('tr_detail_reservasi', 'harga')) {
                 $table->integer('harga')->after('id_layanan');
             }
-            if (!Schema::hasColumn('tr_detail_reservasi', 'jumlah')) {
+            if (! Schema::hasColumn('tr_detail_reservasi', 'jumlah')) {
                 $table->integer('jumlah')->after('harga');
             }
-            if (!Schema::hasColumn('tr_detail_reservasi', 'sub_total')) {
+            if (! Schema::hasColumn('tr_detail_reservasi', 'sub_total')) {
                 $table->integer('sub_total')->after('jumlah');
             }
         });

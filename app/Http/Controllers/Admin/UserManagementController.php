@@ -3,15 +3,16 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\StoreAdminRequest;
-use App\ViewModels\Admin\UserManagementViewModel;
+use App\Services\Contracts\UserServiceInterface;
+use App\ViewModels\Shared\UserManagementViewModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
     public function __construct(
-        private UserManagementViewModel $userManagementViewModel
+        private UserManagementViewModel $userManagementViewModel,
+        private UserServiceInterface $userService,
     ) {}
 
     /**
@@ -19,19 +20,7 @@ class UserManagementController extends Controller
      */
     public function index(): View
     {
-        $users = $this->userManagementViewModel->getAllUsers();
-
-        $pelanggan = $users->where('role', 'pelanggan')->values();
-
-        return view('admin.users', ['users' => $pelanggan, 'pelanggan' => $pelanggan]);
-    }
-
-    /**
-     * Store new user
-     */
-    public function store(StoreAdminRequest $request): RedirectResponse
-    {
-        return $this->userManagementViewModel->createUser($request);
+        return view('admin.pengguna', $this->userManagementViewModel->getAdminPageData());
     }
 
     /**
@@ -39,6 +28,13 @@ class UserManagementController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-        return $this->userManagementViewModel->deleteUser($id);
+        return $this->resultResponse($this->userService->deleteUser($id, (int) auth()->id()));
+    }
+
+    private function resultResponse(array $result): RedirectResponse
+    {
+        return $result['success']
+            ? back()->with('success', $result['message'])
+            : back()->with('error', $result['message'])->withInput();
     }
 }

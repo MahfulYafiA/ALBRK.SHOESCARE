@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Layanan\StoreLayananRequest;
 use App\Http\Requests\Layanan\UpdateLayananRequest;
-use App\ViewModels\Admin\LayananViewModel;
+use App\Services\Contracts\LayananServiceInterface;
+use App\Services\Contracts\SiteSettingServiceInterface;
+use App\ViewModels\Shared\LayananViewModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +15,9 @@ use Illuminate\View\View;
 class LayananController extends Controller
 {
     public function __construct(
-        private LayananViewModel $layananViewModel
+        private LayananViewModel $layananViewModel,
+        private LayananServiceInterface $layananService,
+        private SiteSettingServiceInterface $siteSettingService,
     ) {}
 
     /**
@@ -21,14 +25,14 @@ class LayananController extends Controller
      */
     public function index(): View
     {
-        $layanans = $this->layananViewModel->getAllLayanan();
+        $data = $this->layananViewModel->getPageData();
 
         // Check if superadmin
-        if (auth()->user()->id_role === 1) {
-            return view('superadmin.layanan', compact('layanans'));
+        if (auth()->user()->isSuperAdmin()) {
+            return view('superadmin.layanan', $data);
         }
 
-        return view('admin.layanan', compact('layanans'));
+        return view('admin.layanan', $data);
     }
 
     /**
@@ -36,7 +40,7 @@ class LayananController extends Controller
      */
     public function store(StoreLayananRequest $request): RedirectResponse
     {
-        return $this->layananViewModel->createLayanan($request);
+        return $this->serviceResponse($this->layananService->createLayanan($request->validated()));
     }
 
     /**
@@ -44,7 +48,7 @@ class LayananController extends Controller
      */
     public function update(UpdateLayananRequest $request, int $id): RedirectResponse
     {
-        return $this->layananViewModel->updateLayanan($request, $id);
+        return $this->serviceResponse($this->layananService->updateLayanan($id, $request->validated()));
     }
 
     /**
@@ -52,7 +56,9 @@ class LayananController extends Controller
      */
     public function destroy(int $id): RedirectResponse
     {
-        return $this->layananViewModel->deleteLayanan($id);
+        return $this->layananService->deleteLayanan($id)
+            ? back()->with('success', 'Layanan berhasil dihapus.')
+            : back()->with('error', 'Gagal menghapus layanan.');
     }
 
     /**
@@ -60,7 +66,15 @@ class LayananController extends Controller
      */
     public function updateHero(Request $request): RedirectResponse
     {
-        return $this->layananViewModel->updateHeroBanner($request);
+        if (! $request->hasFile('hero_image')) {
+            return back()->with('error', 'Tidak ada file yang dipilih.');
+        }
+
+        $result = $this->siteSettingService->updateImage('hero_image', 'hero', $request->file('hero_image'));
+
+        return $result['success']
+            ? back()->with('success', 'Hero banner berhasil diperbarui!')
+            : back()->with('error', $result['message']);
     }
 
     /**
@@ -68,6 +82,21 @@ class LayananController extends Controller
      */
     public function updateTentang(Request $request): RedirectResponse
     {
-        return $this->layananViewModel->updateTentangKami($request);
+        if (! $request->hasFile('tentang_image')) {
+            return back()->with('error', 'Tidak ada file yang dipilih.');
+        }
+
+        $result = $this->siteSettingService->updateImage('tentang_image', 'tentang', $request->file('tentang_image'));
+
+        return $result['success']
+            ? back()->with('success', 'Gambar tentang kami berhasil diperbarui!')
+            : back()->with('error', $result['message']);
+    }
+
+    private function serviceResponse(array $result): RedirectResponse
+    {
+        return $result['success']
+            ? back()->with('success', $result['message'])
+            : back()->with('error', $result['message'])->withInput();
     }
 }
