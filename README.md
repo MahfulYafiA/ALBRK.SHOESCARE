@@ -22,8 +22,8 @@ Harga reservasi dihitung dengan menjumlahkan harga layanan yang dipilih, lalu me
 ### Admin
 
 - Melihat dashboard operasional dan antrean reservasi.
-- Memperbarui status pesanan: menunggu, diterima, sedang diproses, selesai, atau dibatalkan.
-- Menandai pesanan selesai sebagai sudah diambil. Pesanan selesai tetap terlihat di antrean sampai ditandai sudah diambil.
+- Memperbarui status reservasi: menunggu, diterima, sedang diproses, selesai, atau dibatalkan.
+- Menandai reservasi selesai sebagai sudah diambil. Reservasi selesai tetap terlihat di antrean sampai ditandai sudah diambil.
 - Mengelola katalog layanan dan pengguna.
 - Mencatat transaksi langsung melalui kasir offline.
 - Melihat dan mengunduh laporan omzet.
@@ -38,8 +38,8 @@ Semua pengguna yang masuk dapat mengelola profil. Superadmin juga dapat mengubah
 
 1. Pelanggan memilih satu atau beberapa layanan aktif dan jumlah sepatu.
 2. Aplikasi menghitung total harga dan menyimpan satu reservasi dengan satu detail untuk setiap layanan.
-3. Admin memproses pesanan melalui antrean. Pelanggan dapat melihat perubahan status di riwayat reservasi.
-4. Setelah status selesai, pesanan tetap tampil sampai admin menandainya sudah diambil.
+3. Admin memproses reservasi melalui antrean. Pelanggan dapat melihat perubahan status di riwayat reservasi.
+4. Setelah status selesai, reservasi tetap tampil sampai admin menandainya sudah diambil.
 5. Pembayaran gateway diproses melalui Midtrans; pembayaran tunai dicatat sebagai pembayaran di kasir.
 
 ## Teknologi dan Arsitektur
@@ -122,6 +122,14 @@ composer run dev
 
 Aplikasi tersedia di `http://127.0.0.1:8000`.
 
+## Format Kode
+
+Gunakan Laravel Pint untuk merapikan format file PHP:
+
+```powershell
+composer format
+```
+
 ## Build Production
 
 ```powershell
@@ -136,3 +144,7 @@ php artisan view:cache
 ```
 
 Atur nilai production di `.env`, termasuk `APP_ENV=production`, `APP_DEBUG=false`, `APP_URL`, koneksi database, dan kredensial Midtrans.
+
+Untuk pembayaran Midtrans, isi `MIDTRANS_SERVER_KEY` dan `MIDTRANS_CLIENT_KEY`. Gunakan kredensial sandbox dengan `MIDTRANS_IS_PRODUCTION=false` saat uji coba; ubah ke `true` hanya setelah kredensial akun production siap. URL callback yang didaftarkan pada dashboard Midtrans adalah `https://<domain>/midtrans/callback`.
+
+Pastikan document root web server mengarah ke folder `public`, bukan root proyek. Beri proses PHP hak tulis ke `storage` dan `bootstrap/cache`, aktifkan HTTPS, lalu jalankan `php artisan optimize` setelah `.env` production siap. Cache dan queue bawaan menggunakan `file` dan `sync`, sehingga tidak memerlukan tabel tambahan atau worker queue. Jika hosting memakai queue database, siapkan konfigurasi koneksi dan migrasi tabel queue terlebih dahulu.
