@@ -1,6 +1,6 @@
 # ALBRK Shoesclean
 
-ALBRK Shoesclean adalah aplikasi web untuk mengelola reservasi dan operasional jasa cuci sepatu. Aplikasi dibuat dengan Laravel dan Blade untuk tiga role utama: pelanggan, admin, dan superadmin.
+ALBRK SHOESCARE adalah aplikasi web untuk mengelola reservasi dan operasional jasa cuci sepatu. Aplikasi dibuat dengan Laravel dan Blade untuk tiga role utama: pelanggan, admin, dan superadmin.
 
 ## Fungsi Aplikasi
 
