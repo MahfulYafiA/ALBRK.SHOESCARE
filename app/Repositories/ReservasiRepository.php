@@ -181,14 +181,7 @@ class ReservasiRepository implements ReservasiRepositoryInterface
             $query->whereDate('tanggal_reservasi', '<=', $filters['tanggal_akhir']);
         }
 
-        $query = match ($filters['sort'] ?? 'terbaru') {
-            'terlama' => $query->orderBy('created_at')->orderBy('id_reservasi'),
-            'total_terbesar' => $query->orderByDesc('total_harga')->orderByDesc('created_at'),
-            'jadwal_terdekat' => $query->orderBy('tanggal_reservasi')->orderBy('id_reservasi'),
-            default => $query->orderByDesc('created_at')->orderByDesc('id_reservasi'),
-        };
-
-        return $query->paginate(10)->withQueryString();
+        return $query->orderByDesc('created_at')->orderByDesc('id_reservasi')->paginate(10)->withQueryString();
     }
 
     public function getAdminQueueSummary(): array

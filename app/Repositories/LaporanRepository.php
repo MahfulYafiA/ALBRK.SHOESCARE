@@ -30,6 +30,7 @@ class LaporanRepository implements LaporanRepositoryInterface
         $startDate = $start->toDateString();
         $endDate = $end->toDateString();
         $q = trim($filters['q'] ?? '');
+        $printMode = (bool) ($filters['cetak'] ?? false);
 
         $reservations = fn () => Reservasi::query()->whereBetween('tanggal_reservasi', [$startDate, $endDate]);
         $payments = fn () => Pembayaran::query()->whereBetween(DB::raw('DATE(COALESCE(tanggal_bayar, created_at))'), [$startDate, $endDate]);
@@ -60,7 +61,8 @@ class LaporanRepository implements LaporanRepositoryInterface
         if ($q !== '') {
             $reservationQuery->where(fn (Builder $query) => $this->searchReservations($query, $q));
         }
-        $reservationRows = $reservationQuery->orderByDesc('tanggal_reservasi')->orderByDesc('id_reservasi')->paginate(10, ['*'], 'reservasi_page')->withQueryString();
+        $reservationQuery->orderByDesc('tanggal_reservasi')->orderByDesc('id_reservasi');
+        $reservationRows = $printMode ? $reservationQuery->get() : $reservationQuery->paginate(10, ['*'], 'reservasi_page')->withQueryString();
 
         $paymentQuery = $payments()->with(['reservasi.user']);
         if ($q !== '') {
@@ -75,7 +77,8 @@ class LaporanRepository implements LaporanRepositoryInterface
         if ($q !== '') {
             $customerQuery->where(fn (Builder $query) => $query->where('nama', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%")->orWhere('no_telp', 'like', "%{$q}%"));
         }
-        $customerRows = $customerQuery->orderByDesc('created_at')->paginate(10, ['*'], 'pelanggan_page')->withQueryString();
+        $customerQuery->orderByDesc('created_at');
+        $customerRows = $printMode ? $customerQuery->get() : $customerQuery->paginate(10, ['*'], 'pelanggan_page')->withQueryString();
 
         $serviceQuery = DetailReservasi::query()
             ->join('ms_layanan', 'ms_layanan.id_layanan', '=', 'tr_detail_reservasi.id_layanan')
@@ -84,11 +87,12 @@ class LaporanRepository implements LaporanRepositoryInterface
         if ($q !== '') {
             $serviceQuery->where('ms_layanan.nama_layanan', 'like', "%{$q}%");
         }
-        $serviceRows = $serviceQuery->select('ms_layanan.id_layanan', 'ms_layanan.nama_layanan')
+        $serviceQuery->select('ms_layanan.id_layanan', 'ms_layanan.nama_layanan')
             ->selectRaw('COUNT(DISTINCT tr_reservasi.id_reservasi) as jumlah_reservasi')
             ->selectRaw('COALESCE(SUM(tr_detail_reservasi.jumlah), 0) as jumlah_sepatu')
             ->selectRaw('COALESCE(SUM(CASE WHEN LOWER(COALESCE(tr_reservasi.status_bayar, \'\')) = \'lunas\' THEN COALESCE(tr_detail_reservasi.sub_total, tr_detail_reservasi.harga * tr_detail_reservasi.jumlah) ELSE 0 END), 0) as total_pendapatan')
-            ->groupBy('ms_layanan.id_layanan', 'ms_layanan.nama_layanan')->orderByDesc('jumlah_reservasi')->paginate(10, ['*'], 'layanan_page')->withQueryString();
+            ->groupBy('ms_layanan.id_layanan', 'ms_layanan.nama_layanan')->orderByDesc('jumlah_reservasi');
+        $serviceRows = $printMode ? $serviceQuery->get() : $serviceQuery->paginate(10, ['*'], 'layanan_page')->withQueryString();
 
         $chart = $this->buildChart($startDate, $endDate, $period);
         $totalIncome = $paymentCounts['nominal_berhasil'];
@@ -107,7 +111,7 @@ class LaporanRepository implements LaporanRepositoryInterface
             $incomePeriods[] = ['label' => $label, 'amount' => (int) $amount];
         }
 
-        return compact('period', 'startDate', 'endDate', 'q', 'reservationCounts', 'paymentCounts', 'customerCounts', 'reservationRows', 'paymentRows', 'customerRows', 'serviceRows', 'chart', 'totalIncome', 'incomePeriods');
+        return compact('period', 'startDate', 'endDate', 'q', 'printMode', 'reservationCounts', 'paymentCounts', 'customerCounts', 'reservationRows', 'paymentRows', 'customerRows', 'serviceRows', 'chart', 'totalIncome', 'incomePeriods');
     }
 
     private function searchReservations(Builder $query, string $term): void

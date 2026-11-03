@@ -9,7 +9,6 @@
         <a href="{{ route('reservasi.create') }}" class="customer-nav-link {{ request()->routeIs('reservasi.create') ? 'is-active' : '' }}"><i class="fa-solid fa-calendar-check"></i><span class="nav-label">Reservasi</span></a>
         <a href="{{ route('pelanggan.riwayat-reservasi') }}" class="customer-nav-link {{ request()->routeIs('pelanggan.riwayat-reservasi*') ? 'is-active' : '' }}"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-label">Riwayat Reservasi</span></a>
         <a href="{{ route('pelanggan.pembayaran') }}" class="customer-nav-link {{ request()->routeIs('pelanggan.pembayaran*') ? 'is-active' : '' }}"><i class="fa-regular fa-credit-card"></i><span class="nav-label">Pembayaran</span></a>
-        <a href="{{ route('pelanggan.notifikasi') }}" class="customer-nav-link {{ request()->routeIs('pelanggan.notifikasi*') ? 'is-active' : '' }}" aria-label="Notifikasi"><i class="fa-regular fa-bell"></i><span class="nav-label">Notifikasi</span></a>
         <a href="{{ route('profil.index') }}" class="customer-nav-link {{ request()->routeIs('profil.index') ? 'is-active' : '' }}"><i class="fa-solid fa-user-gear"></i><span class="nav-label">Profil</span></a>
     </nav>
     <div class="help-card mt-auto rounded-xl border border-white/10 bg-white/[.04] p-3.5">

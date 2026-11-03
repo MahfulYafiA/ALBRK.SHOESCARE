@@ -70,7 +70,7 @@
 
     @include('shared.pelanggan-sidebar')
     <div class="customer-main ml-[218px] flex min-h-screen min-w-0 flex-1 flex-col">
-    @include('shared.pelanggan-header', ['pageTitle' => 'Pembayaran'])
+    @include('shared.pelanggan-header', ['pageTitle' => ''])
 
     <main class="relative z-10 flex flex-1 items-center justify-center overflow-y-auto px-4 py-8 sm:px-6 sm:py-10 lg:px-10 lg:py-14">
         <div class="w-full max-w-5xl">

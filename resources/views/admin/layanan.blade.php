@@ -12,6 +12,7 @@
         .custom-scroll { scrollbar-width: thin; scrollbar-color: #cbd8de transparent; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd8de; border-radius: 8px; }
+        @media (min-width: 600px) { .service-modal-fields { grid-template-columns: 120px minmax(0, 1fr); } .service-modal-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     </style>
     @include('shared.albrk-redesign')
     <style>
@@ -32,8 +33,8 @@
             @include('shared.admin-header-actions')
         </header>
 
-        <div class="custom-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div class="mx-auto max-w-[1500px] space-y-6">
+        <div class="custom-scroll flex-1 overflow-y-auto p-3 lg:p-4">
+            <div class="w-full space-y-6">
                 @if(session('success'))<div role="status" class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800"><i class="fa-solid fa-circle-check"></i>{{ session('success') }}</div>@endif
                 @if(session('error'))<div role="alert" class="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-800"><i class="fa-solid fa-circle-exclamation"></i>{{ session('error') }}</div>@endif
                 @if($errors->any())<div role="alert" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
@@ -97,8 +98,8 @@
     </main>
 
     {{-- MODAL --}}
-    <div id="modalLayanan" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm" onclick="if(event.target===this)toggleModal()">
-        <div class="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-7 custom-scroll">
+    <div id="modalLayanan" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+        <div class="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:overflow-visible sm:p-7">
             <div class="mb-6 flex items-start justify-between gap-4">
                 <div><p class="text-xs font-semibold uppercase tracking-wider text-sky-700">Katalog layanan</p><h3 id="modalTitle" class="mt-1 text-xl font-extrabold text-[#17303d]">Tambah layanan</h3></div>
                 <button type="button" onclick="toggleModal()" class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-slate-200 text-slate-500 transition hover:bg-slate-50" aria-label="Tutup">
@@ -110,35 +111,33 @@
                 @csrf
                 <div id="methodField"></div>
 
-                <div class="flex justify-center">
-                    <div class="relative">
-                        <img id="item_preview" src="" alt="Pratinjau foto layanan" class="hidden h-28 w-28 rounded-xl border border-slate-200 object-cover">
-                        <div id="item_placeholder" class="grid h-28 w-28 place-items-center rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-400">
-                            <i class="fa-solid fa-image text-2xl"></i>
+                <div class="service-modal-fields grid items-start gap-5">
+                    <div>
+                        <label for="inputGambar" class="mb-2 block text-xs font-semibold text-slate-700">Gambar layanan</label>
+                        <input type="file" name="gambar" id="inputGambar" accept="image/jpeg,image/png,image/gif" class="sr-only" onchange="previewItem(event)">
+                        <label for="inputGambar" class="mx-auto flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-slate-300 bg-slate-50 text-slate-500 transition hover:border-sky-400 hover:bg-sky-50">
+                            <img id="item_preview" src="" alt="Pratinjau gambar layanan" class="hidden h-full w-full object-contain">
+                            <span id="item_placeholder" class="grid h-10 w-10 place-items-center rounded-lg bg-white text-slate-400"><i class="fa-solid fa-image text-xl"></i></span>
+                        </label>
+                        <p class="mt-1 text-center text-[11px] text-slate-500">Klik untuk tambah gambar</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="service-modal-inputs grid gap-4">
+                            <div>
+                                <label for="inputNama" class="mb-2 block text-xs font-semibold text-slate-700">Nama layanan</label>
+                                <input type="text" name="nama_layanan" id="inputNama" required placeholder="Contoh: Fast Clean" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
+                            </div>
+                            <div>
+                                <label for="inputHarga" class="mb-2 block text-xs font-semibold text-slate-700">Harga per pasang (Rp)</label>
+                                <input type="number" name="harga" id="inputHarga" min="0" required placeholder="35000" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="inputDeskripsi" class="mb-2 block text-xs font-semibold text-slate-700">Deskripsi</label>
+                            <textarea name="deskripsi" id="inputDeskripsi" rows="3" required placeholder="Jelaskan proses dan bagian sepatu yang dirawat..." class="w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"></textarea>
                         </div>
                     </div>
-                </div>
-
-                <div>
-                    <label for="inputNama" class="mb-2 block text-xs font-semibold text-slate-700">Nama layanan</label>
-                    <input type="text" name="nama_layanan" id="inputNama" required placeholder="Contoh: Fast Clean" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="inputHarga" class="mb-2 block text-xs font-semibold text-slate-700">Harga per pasang (Rp)</label>
-                        <input type="number" name="harga" id="inputHarga" min="0" required placeholder="35000" class="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400">
-                    </div>
-                    <div>
-                        <label for="inputGambar" class="mb-2 block text-xs font-semibold text-slate-700">Foto layanan</label>
-                        <input type="file" name="gambar" id="inputGambar" accept="image/jpeg,image/png,image/gif" class="block h-11 w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-slate-700" onchange="previewItem(event)">
-                        <span id="add_file_name" class="sr-only">Pilih foto</span>
-                    </div>
-                </div>
-
-                <div>
-                    <label for="inputDeskripsi" class="mb-2 block text-xs font-semibold text-slate-700">Deskripsi</label>
-                    <textarea name="deskripsi" id="inputDeskripsi" rows="3" required placeholder="Jelaskan proses dan bagian sepatu yang dirawat..." class="w-full resize-y rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm text-slate-800 outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 placeholder:text-slate-400"></textarea>
                 </div>
 
                 <div class="flex justify-end gap-2 border-t border-slate-100 pt-5">
@@ -158,6 +157,19 @@
             previewImage(event, 'tentang_image_preview', 'tentang_placeholder');
         }
 
+        function previewItem(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('item_preview');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                document.getElementById('item_placeholder').classList.add('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
         function previewImage(event, imageId, placeholderId) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
@@ -170,22 +182,6 @@
             reader.readAsDataURL(file);
         }
 
-        function previewItem(event) {
-            const preview = document.getElementById('item_preview');
-            const placeholder = document.getElementById('item_placeholder');
-            const nameLabel = document.getElementById('add_file_name');
-            if (event.target.files && event.target.files[0]) {
-                nameLabel.innerText = event.target.files[0].name;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                }
-                reader.readAsDataURL(event.target.files[0]);
-            }
-        }
-
         function openAddModal() {
             document.getElementById('modalTitle').textContent = 'Tambah layanan';
             document.getElementById('layananForm').action = "{{ route('admin.layanan.store') }}";
@@ -194,9 +190,9 @@
             document.getElementById('inputHarga').value = '';
             document.getElementById('inputDeskripsi').value = '';
             document.getElementById('inputGambar').value = '';
+            document.getElementById('item_preview').src = '';
             document.getElementById('item_preview').classList.add('hidden');
             document.getElementById('item_placeholder').classList.remove('hidden');
-            document.getElementById('add_file_name').innerText = 'Pilih foto';
             toggleModal();
         }
 
@@ -208,15 +204,17 @@
             document.getElementById('inputHarga').value = harga;
             document.getElementById('inputDeskripsi').value = deskripsi || '';
             document.getElementById('inputGambar').value = '';
-            if(gambarUrl) {
-                document.getElementById('item_preview').src = gambarUrl;
-                document.getElementById('item_preview').classList.remove('hidden');
-                document.getElementById('item_placeholder').classList.add('hidden');
+            const preview = document.getElementById('item_preview');
+            const placeholder = document.getElementById('item_placeholder');
+            if (gambarUrl) {
+                preview.src = gambarUrl;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
             } else {
-                document.getElementById('item_preview').classList.add('hidden');
-                document.getElementById('item_placeholder').classList.remove('hidden');
+                preview.src = '';
+                preview.classList.add('hidden');
+                placeholder.classList.remove('hidden');
             }
-            document.getElementById('add_file_name').innerText = 'Pilih foto baru (opsional)';
             toggleModal();
         }
 
@@ -238,9 +236,6 @@
             ));
         });
 
-        document.addEventListener('keydown', event => {
-            if (event.key === 'Escape' && !document.getElementById('modalLayanan').classList.contains('hidden')) toggleModal();
-        });
     </script>
 </body>
 </html>

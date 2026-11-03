@@ -6,7 +6,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <style>body{font-family:'Plus Jakarta Sans',sans-serif;background:#f3f7fa;color:#17303d}.admin-scroll{scrollbar-width:none;-ms-overflow-style:none}.admin-scroll::-webkit-scrollbar{display:none}</style>
+    <style>
+        body{font-family:'Plus Jakarta Sans',sans-serif;background:#f3f7fa;color:#17303d}
+        .admin-scroll{scrollbar-width:none;-ms-overflow-style:none}
+        .admin-scroll::-webkit-scrollbar{display:none}
+        @media (min-width:1024px) and (min-height:900px){
+            .admin-scroll{overflow-y:hidden!important;padding:.5rem!important}
+            .admin-scroll>.mx-auto{max-width:none!important}
+            .admin-scroll>.mx-auto> :not([hidden])~ :not([hidden]){margin-top:.5rem!important}
+            .admin-scroll section{padding:.75rem!important}
+            .admin-scroll section h3{margin-bottom:.5rem!important}
+            .admin-scroll .grid.gap-5{gap:.5rem!important}
+            .admin-scroll dl>div{margin-top:.35rem!important;padding-bottom:.35rem!important}
+            .admin-scroll dl .pt-3{padding-top:.35rem!important}
+            .admin-scroll .max-h-72{max-height:7rem!important}
+            .admin-scroll textarea{height:3rem!important;min-height:3rem!important;padding:.4rem .65rem!important}
+            .admin-scroll button{min-height:2.25rem}
+            .admin-scroll form.space-y-2> :not([hidden])~ :not([hidden]){margin-top:.35rem!important}
+        }
+    </style>
     @include('shared.albrk-redesign')
 </head>
 @php
@@ -20,13 +38,12 @@
 @endif
 <main class="flex h-screen min-w-0 flex-1 flex-col bg-[#f3f7fa]">
     <header class="relative flex shrink-0 items-center justify-between border-b border-[#29424c] bg-[#17303d] px-5 py-3.5 text-white md:px-8">
-        <h1 class="text-sm font-bold sm:text-base">Detail Pembayaran</h1>
         <div class="ml-auto flex items-center gap-3 sm:gap-5">
             <a href="{{ route($paymentRoutePrefix . '.index') }}" class="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-white hover:bg-white/10"><i class="fa-solid fa-arrow-left mr-1"></i>Kembali</a>
             @include('shared.admin-header-actions')
         </div>
     </header>
-    <div class="admin-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"><div class="mx-auto max-w-5xl space-y-5">
+    <div class="admin-scroll flex-1 overflow-y-auto p-2 sm:p-3 lg:p-4"><div class="mx-auto max-w-5xl space-y-5">
         @if(session('success'))<div role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ session('success') }}</div>@endif
         @if($errors->any())<div role="alert" class="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{{ $errors->first() }}</div>@endif
         @php

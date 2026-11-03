@@ -46,10 +46,10 @@
 
     <main class="customer-main ml-[218px] flex h-screen min-w-0 flex-1 flex-col bg-[#f3f7fa]">
         <header class="z-40 flex shrink-0 items-center justify-between border-b border-[#29424c] bg-[#17303d] px-5 py-3.5 text-white md:px-8">
-            <h1 class="text-sm font-bold text-white sm:text-base">Reservasi Layanan</h1>
             <div class="ml-auto flex items-center gap-3 sm:gap-5">
                 <span class="hidden rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-slate-300 sm:block">Hari ini: <strong class="text-white">{{ now()->format('d M Y') }}</strong></span>
                 <a href="{{ route('pelanggan.notifikasi') }}" aria-label="Notifikasi, {{ $headerUnreadCount }} belum dibaca" title="Notifikasi" class="relative grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/10 text-slate-200 transition hover:bg-white/15"><i class="fa-regular fa-bell"></i>@if($headerUnreadCount)<span class="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>@endif</a>
+                @include('shared.user-guide-trigger')
                 <div class="relative">
                     <button type="button" id="customerProfileButton" aria-expanded="false" aria-controls="customerProfileMenu" onclick="const menu=document.getElementById('customerProfileMenu');const open=menu.classList.toggle('hidden');this.setAttribute('aria-expanded',String(!open))" class="flex items-center rounded-full border border-white/10 bg-white/10 p-1 pr-3 transition hover:border-sky-400/50">
                         @if(auth()->user()->foto_profil)<img src="{{ route('profil.foto') }}" alt="Foto profil" class="h-8 w-8 rounded-full border border-white/20 object-cover">@else<span class="grid h-8 w-8 place-items-center rounded-full bg-sky-700 text-[10px] font-bold">{{ strtoupper(substr(auth()->user()->nama ?? 'PL',0,2)) }}</span>@endif
@@ -59,8 +59,8 @@
                 </div>
             </div>
         </header>
-        <div class="booking-scroll flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8">
-        <div class="mx-auto w-full max-w-[1440px]">
+        <div class="booking-scroll flex-1 overflow-y-auto px-3 py-4 lg:px-4">
+        <div class="w-full">
         @if(session('error'))
             <div class="mb-4 flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-semibold text-red-700"><i class="fa-solid fa-circle-exclamation"></i>{{ session('error') }}</div>
         @endif
@@ -68,18 +68,12 @@
             <div class="mb-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700"><div class="mb-2 flex items-center gap-2 text-xs font-bold"><i class="fa-solid fa-circle-exclamation"></i>Periksa kembali data reservasi:</div><ul class="list-inside list-disc space-y-1 text-[10px]">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
         @endif
 
-        <div class="mb-5 grid grid-cols-4 gap-3 rounded-xl border border-[#dbe5ea] bg-white px-4 py-4 sm:px-6">
-            @foreach(['Pilih Layanan','Jadwal & Lokasi','Detail reservasi','Konfirmasi'] as $index => $step)
-                <div class="flex min-w-0 items-center gap-3 text-[10px] sm:text-xs"><span class="grid h-8 w-8 shrink-0 place-items-center rounded-full {{ $index === 0 ? 'bg-[#17303d] text-white' : 'bg-[#eef4f7] text-slate-500' }} text-[11px] font-bold">{{ $index + 1 }}</span><span class="truncate {{ $index === 0 ? 'font-bold text-[#17303d]' : 'text-slate-500' }}">{{ $step }}</span>@if(!$loop->last)<span class="hidden h-px flex-1 bg-slate-200 sm:block"></span>@endif</div>
-            @endforeach
-        </div>
-
         <form id="formReservasi" action="{{ route('reservasi.store') }}" method="POST" class="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,.9fr)]">
             @csrf
             <section class="booking-panel rounded-xl p-5 sm:p-6">
-                <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div class="mb-4 flex flex-col items-start gap-3">
                     <div><h2 class="text-base font-bold text-[#17303d]">Layanan Kami</h2><p class="mt-1 text-xs text-slate-500">Pilih layanan dan atur jumlah pasang di setiap kartu.</p></div>
-                    <label class="flex h-11 w-full items-center gap-2 rounded-lg border border-[#dbe5ea] px-3 text-slate-400 sm:max-w-[260px]"><i class="fa-solid fa-magnifying-glass text-[10px]"></i><input id="layananSearch" type="search" placeholder="Cari layanan..." class="w-full text-xs text-slate-700 outline-none" aria-label="Cari layanan"></label>
+                    <label class="flex h-11 w-full items-center gap-2 rounded-lg border border-[#dbe5ea] px-3 text-slate-400 sm:max-w-[320px]"><i class="fa-solid fa-magnifying-glass text-[10px]"></i><input id="layananSearch" type="search" placeholder="Cari layanan..." class="w-full text-xs text-slate-700 outline-none" aria-label="Cari layanan"></label>
                 </div>
 
                 <div id="serviceFilters" class="mb-4 flex flex-wrap gap-2.5 text-[11px]">
@@ -299,5 +293,6 @@
             }
         });
     </script>
+    @include('shared.user-guide')
 </body>
 </html>

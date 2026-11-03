@@ -57,6 +57,7 @@
             <div class="ml-auto flex items-center gap-3 sm:gap-5">
                 <span class="hidden rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[9px] font-bold uppercase tracking-widest text-slate-300 sm:block">Hari ini: <strong class="text-white">{{ now()->format('d M Y') }}</strong></span>
                 <a href="{{ route('pelanggan.notifikasi') }}" aria-label="Notifikasi, {{ $headerUnreadCount }} belum dibaca" title="Notifikasi" class="relative grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-white/10 text-slate-200 transition hover:bg-white/15"><i class="fa-regular fa-bell"></i>@if($headerUnreadCount)<span class="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">{{ $headerUnreadCount > 99 ? '99+' : $headerUnreadCount }}</span>@endif</a>
+                @include('shared.user-guide-trigger')
                 <div class="relative">
                     <button type="button" id="customerProfileButton" aria-expanded="false" aria-controls="customerProfileMenu" onclick="const menu=document.getElementById('customerProfileMenu');const open=menu.classList.toggle('hidden');this.setAttribute('aria-expanded',String(!open))" class="flex items-center rounded-full border border-white/10 bg-white/10 p-1 pr-3 transition hover:border-sky-400/50">
                         @if($avatar)<img src="{{ $avatar }}" alt="Foto {{ $customer->nama }}" class="h-8 w-8 rounded-full border border-white/20 object-cover">@else<span class="grid h-8 w-8 place-items-center rounded-full bg-sky-700 text-[10px] font-bold">{{ strtoupper(substr($firstName,0,2)) }}</span>@endif
@@ -99,7 +100,7 @@
 
                 <section id="reservasi-terbaru" class="customer-panel overflow-hidden rounded-2xl">
                     <div class="flex items-center justify-between p-5 md:px-6"><div><h2 class="text-sm font-bold text-[#17303d]">Reservasi Terbaru</h2><p class="mt-1 text-[10px] text-slate-500">Pembaruan reservasi Anda</p></div><a href="{{ route('pelanggan.riwayat-reservasi') }}" class="text-[10px] font-semibold text-sky-700">Lihat Semua <i class="fa-solid fa-arrow-right ml-1"></i></a></div>
-                    <div class="overflow-x-auto"><table class="w-full min-w-[500px] text-left text-[10px]"><thead class="bg-[#eef4f7] text-slate-500"><tr><th class="px-4 py-3 font-semibold">No.</th><th class="px-4 py-3 font-semibold">Tanggal</th><th class="px-4 py-3 font-semibold">Layanan</th><th class="px-4 py-3 font-semibold">Status</th><th class="px-4 py-3 font-semibold">Total</th></tr></thead><tbody>
+                    <div class="overflow-x-auto"><table class="w-full min-w-[500px] text-left text-[10px]"><thead class="bg-[#eef4f7] text-slate-500"><tr><th class="px-4 py-3 font-semibold">No. Reservasi</th><th class="px-4 py-3 font-semibold">Tanggal</th><th class="px-4 py-3 font-semibold">Layanan</th><th class="px-4 py-3 font-semibold">Status</th><th class="px-4 py-3 font-semibold">Total</th></tr></thead><tbody>
                         <?php if (count($latestReservations) > 0): foreach ($latestReservations as $reservation): $status = $reservation['status'] ?? 'menunggu'; ?>
                             <tr class="border-t border-slate-100 transition hover:bg-slate-50"><td class="whitespace-nowrap px-4 py-3 font-semibold text-[#17303d]">#{{ $reservation['id_reservasi'] }}</td><td class="whitespace-nowrap px-4 py-3 text-slate-500">{{ \Carbon\Carbon::parse($reservation['tanggal_reservasi'])->format('d M Y') }}</td><td class="whitespace-nowrap px-4 py-3 text-slate-600">{{ $reservation['metode_layanan'] ?? 'Perawatan Sepatu' }}</td><td class="px-4 py-3"><span class="whitespace-nowrap rounded-full px-2 py-1 text-[9px] font-semibold {{ in_array($status, ['selesai','diambil']) ? 'bg-emerald-50 text-emerald-700' : ($status === 'dibatalkan' ? 'bg-rose-50 text-rose-700' : 'bg-sky-50 text-sky-700') }}">{{ $statusLabels[$status] ?? ucfirst($status) }}</span></td><td class="whitespace-nowrap px-4 py-3 font-semibold text-[#17303d]">Rp {{ number_format($reservation['total_harga'] ?? 0,0,',','.') }}</td></tr>
                         <?php endforeach; else: ?>
@@ -136,5 +137,6 @@
             }
         });
     </script>
+    @include('shared.user-guide')
 </body>
 </html>

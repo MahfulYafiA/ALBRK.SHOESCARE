@@ -94,6 +94,14 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
     Route::middleware('role:admin')->prefix('admin/notifikasi')->name('admin.notifikasi.')->group(function () {
         Route::get('/', [NotifikasiController::class, 'index'])->name('index');
+        Route::post('/', [NotifikasiController::class, 'store'])->name('store');
+        Route::get('/{notification}', [NotifikasiController::class, 'show'])->name('show');
+        Route::patch('/{notification}/read', [NotifikasiController::class, 'markRead'])->name('read');
+        Route::patch('/read-all', [NotifikasiController::class, 'markAllRead'])->name('read-all');
+    });
+    Route::middleware('role:superadmin')->prefix('superadmin/notifikasi')->name('superadmin.notifikasi.')->group(function () {
+        Route::get('/', [NotifikasiController::class, 'index'])->name('index');
+        Route::post('/', [NotifikasiController::class, 'store'])->name('store');
         Route::get('/{notification}', [NotifikasiController::class, 'show'])->name('show');
         Route::patch('/{notification}/read', [NotifikasiController::class, 'markRead'])->name('read');
         Route::patch('/read-all', [NotifikasiController::class, 'markAllRead'])->name('read-all');
@@ -115,6 +123,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     // AREA PELANGGAN
     // ==========================================
     Route::middleware('role:pelanggan')->prefix('pelanggan')->name('pelanggan.')->group(function () {
+        Route::get('/riwayat', fn () => redirect()->route('pelanggan.riwayat-reservasi'))->name('riwayat');
         Route::get('/riwayat-reservasi', [RiwayatReservasiController::class, 'index'])->name('riwayat-reservasi');
         Route::get('/riwayat-reservasi/{id}', [RiwayatReservasiController::class, 'show'])
             ->whereNumber('id')->name('riwayat-reservasi.show');

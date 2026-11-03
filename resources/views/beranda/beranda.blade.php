@@ -59,6 +59,14 @@
         body { margin: 0; }
         .font-display { font-family: 'Plus Jakarta Sans', sans-serif; }
 
+        .service-carousel { display:flex; gap:2rem; overflow-x:auto; overflow-y:hidden; padding:0 0 1rem; scroll-snap-type:x mandatory; scroll-behavior:smooth; overscroll-behavior-x:contain; scrollbar-width:thin; scrollbar-color:#9ca3af #e5e7eb; }
+        .service-carousel::-webkit-scrollbar { display:block; height:8px; }
+        .service-carousel::-webkit-scrollbar-track { background:#e5e7eb; border-radius:999px; }
+        .service-carousel::-webkit-scrollbar-thumb { background:#9ca3af; border-radius:999px; }
+        .service-card { flex:0 0 calc((100% - 4rem)/3); min-width:280px; scroll-snap-align:start; }
+        @media (max-width:1023px) { .service-card { flex-basis:calc((100% - 2rem)/2); } }
+        @media (max-width:639px) { .service-card { flex-basis:85%; min-width:0; } }
+
         .gradient-text {
             color: #111111;
             background: none;
@@ -375,9 +383,9 @@
                 </p>
             </div>
 
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div id="serviceCarousel" class="service-carousel">
                 @foreach($layanans as $index => $layanan)
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg shadow-gray-200/50 card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                    <div class="service-card bg-white rounded-xl overflow-hidden shadow-lg shadow-gray-200/50 card-hover border border-gray-100" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
                         <div class="aspect-video overflow-hidden landing-visual mono-grid flex items-center justify-center border-b border-neutral-100 relative bg-neutral-100">
                             {{-- Prioritaskan foto yang diunggah dari admin. Gambar bawaan hanya sebagai fallback. --}}
                             @if($layanan->landing_image)
@@ -424,18 +432,6 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-white/10"></div>
                     </div>
 
-                    {{-- Floating Badge --}}
-                    <div class="absolute -bottom-8 right-4 sm:-right-8 bg-white p-5 sm:p-6 rounded-xl shadow-xl border border-neutral-200" data-aos="fade-up" data-aos-delay="300">
-                        <div class="flex items-center gap-4">
-                            <div class="w-16 h-16 rounded-xl bg-neutral-950 flex items-center justify-center">
-                                <i class="fa-solid fa-trophy text-white text-2xl"></i>
-                            </div>
-                            <div>
-                                <p class="text-3xl font-bold text-gray-900">5+</p>
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun Pengalaman</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="lg:pl-8" data-aos="fade-left">
@@ -578,6 +574,15 @@
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        const serviceCarousel = document.getElementById('serviceCarousel');
+        if (serviceCarousel) {
+            serviceCarousel.addEventListener('wheel', event => {
+                if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+                    event.preventDefault();
+                    serviceCarousel.scrollLeft += event.deltaY;
+                }
+            }, { passive: false });
+        }
         AOS.init({
             once: true,
             offset: 100,

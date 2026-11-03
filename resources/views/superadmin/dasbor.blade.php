@@ -27,8 +27,8 @@
             @include('shared.admin-header-actions')
         </header>
 
-        <div class="dashboard-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div class="mx-auto max-w-[1500px] space-y-6">
+        <div class="dashboard-scroll flex-1 overflow-y-auto p-3 lg:p-4">
+            <div class="w-full space-y-6">
                 <section class="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
                     <div class="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-sky-100/80 blur-3xl"></div>
                     <div class="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">

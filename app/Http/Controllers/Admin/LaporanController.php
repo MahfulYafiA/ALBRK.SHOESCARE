@@ -13,6 +13,8 @@ class LaporanController extends Controller
 
     public function index(LaporanIndexRequest $request): View
     {
-        return view('admin.laporan', $this->laporanViewModel->getReportData($request->validated()));
+        $filters = array_merge($request->validated(), ['cetak' => $request->boolean('cetak')]);
+
+        return view('admin.laporan', $this->laporanViewModel->getReportData($filters));
     }
 }

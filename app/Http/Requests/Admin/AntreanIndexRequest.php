@@ -22,7 +22,6 @@ class AntreanIndexRequest extends FormRequest
             'metode_layanan' => ['nullable', Rule::in(['Pick-up', 'Drop-off'])],
             'tanggal_mulai' => ['nullable', 'date'],
             'tanggal_akhir' => ['nullable', 'date', 'after_or_equal:tanggal_mulai'],
-            'sort' => ['nullable', Rule::in(['terbaru', 'terlama', 'total_terbesar', 'jadwal_terdekat'])],
         ];
     }
 }

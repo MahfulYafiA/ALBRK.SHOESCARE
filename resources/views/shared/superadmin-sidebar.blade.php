@@ -8,6 +8,7 @@
         <a href="{{ route('superadmin.dashboard') }}" class="admin-nav-link {{ request()->routeIs('superadmin.dashboard') ? 'is-active' : '' }}"><i class="fa-solid fa-chart-pie"></i>Dashboard</a>
         <a href="{{ route('superadmin.layanan.index') }}" class="admin-nav-link {{ request()->routeIs('superadmin.layanan.*') ? 'is-active' : '' }}"><i class="fa-solid fa-shoe-prints"></i>Master Layanan</a>
         <a href="{{ route('superadmin.laporan') }}" class="admin-nav-link {{ request()->routeIs('superadmin.laporan') ? 'is-active' : '' }}"><i class="fa-solid fa-chart-column"></i>Laporan</a>
+        <a href="{{ route('superadmin.notifikasi.index') }}" class="admin-nav-link {{ request()->routeIs('superadmin.notifikasi.*') ? 'is-active' : '' }}"><i class="fa-regular fa-bell"></i>Notifikasi</a>
         <a href="{{ route('superadmin.users') }}" class="admin-nav-link {{ request()->routeIs('superadmin.users') ? 'is-active' : '' }}"><i class="fa-solid fa-users-gear"></i>Manajemen Pengguna</a>
         <a href="{{ route('profil.index') }}" class="admin-nav-link {{ request()->routeIs('profil.*') ? 'is-active' : '' }}"><i class="fa-solid fa-user-gear"></i>Profil</a>
     </nav>

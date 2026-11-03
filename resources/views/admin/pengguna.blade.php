@@ -20,6 +20,7 @@
 
         .custom-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .custom-scroll::-webkit-scrollbar { display: none; }
+        .admin-queue-table tbody td { padding-top: .5rem; padding-bottom: .5rem; }
     </style>
     @include('shared.albrk-redesign')
     <style>
@@ -75,50 +76,38 @@
                 </div>
             @endif
 
-            {{-- STATISTIK SINGKAT --}}
-            <div class="mb-8 md:mb-10 w-full max-w-sm relative z-10">
-                <div class="glass-panel p-6 md:p-8 rounded-[2rem] flex justify-between items-center transition-all border-indigo-500/30 overflow-hidden relative">
-                    <div class="absolute inset-0 bg-indigo-500/10"></div>
-                    <div class="relative z-10">
-                        <p class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-2">Total Pelanggan</p>
-                        <span class="text-3xl md:text-4xl font-black text-white italic">{{ $totalPelanggan ?? $users->count() }}</span>
-                    </div>
-                    <div class="w-12 h-12 bg-indigo-500/20 border border-indigo-500/50 text-indigo-400 rounded-full flex items-center justify-center text-xl relative z-10 shadow-[0_0_15px_rgba(59,130,246,0.3)]"><i class="fa-solid fa-users"></i></div>
-                </div>
-            </div>
-            
             {{-- TABEL DATA --}}
-            <div class="glass-panel rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden mb-10 relative z-10">
+            <div class="relative z-10 mb-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[800px] md:min-w-0">
+                    <table class="admin-queue-table w-full min-w-[1120px] text-left text-xs">
                         <thead>
-                            <tr class="bg-slate-800/50 border-b border-slate-700 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                <th class="px-8 py-6">Nama Pelanggan</th>
-                                <th class="px-8 py-6">Email & Kontak</th>
-                                <th class="px-8 py-6 text-center">Tipe Akun</th>
-                                <th class="px-8 py-6 text-right">Aksi</th>
+                            <tr class="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+                                <th class="w-[30%] px-4 py-3">Nama Pelanggan</th>
+                                <th class="w-[35%] px-4 py-3">Email & Kontak</th>
+                                <th class="w-[20%] px-4 py-3">Tipe Akun</th>
+                                <th class="w-[15%] px-4 py-3">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/50 text-sm">
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($users as $u)
-                            <tr class="hover:bg-slate-800/30 transition-all group">
-                                <td class="px-8 py-6">
-                                    <p class="font-black text-white uppercase italic leading-tight group-hover:text-indigo-400 transition-colors">{{ $u->nama }}</p>
-                                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Daftar: {{ $u->created_at->format('d/m/Y') }}</p>
+                            <tr class="hover:bg-slate-50/70 group">
+                                <td class="px-4 py-4">
+                                    <p class="font-bold text-slate-800 leading-tight group-hover:text-sky-700 transition-colors">{{ $u->nama }}</p>
+                                    <p class="text-[10px] text-slate-500 mt-1">Daftar: {{ $u->created_at->format('d/m/Y') }}</p>
                                 </td>
-                                <td class="px-8 py-6">
-                                    <p class="text-xs text-slate-300 font-medium">{{ $u->email }}</p>
-                                    <p class="text-[10px] text-slate-500 font-bold tracking-widest mt-1">
-                                        <i class="fa-brands fa-whatsapp text-emerald-500 mr-1"></i> {{ $u->no_telp ?? '-' }}
+                                <td class="px-4 py-4">
+                                    <p class="text-xs text-slate-700 font-medium">{{ $u->email }}</p>
+                                    <p class="text-[10px] text-slate-500 mt-1">
+                                        <i class="fa-brands fa-whatsapp text-emerald-600 mr-1"></i>{{ $u->no_telp ?? '-' }}
                                     </p>
                                 </td>
-                                <td class="px-8 py-6 text-center">
-                                    <span class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-slate-600">Pelanggan</span>
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex rounded-full bg-sky-50 px-2.5 py-1.5 text-[10px] font-bold text-sky-700">Pelanggan</span>
                                 </td>
-                                <td class="px-8 py-6 text-right">
+                                <td class="px-4 py-4">
                                     <form action="{{ route(auth()->user()->isSuperAdmin() ? 'superadmin.pelanggan.destroy' : 'admin.users.destroy', $u->id_user) }}" method="POST" onsubmit="return confirm('Hapus pelanggan ini? Seluruh data riwayat reservasi pelanggan ini juga akan terhapus.');" class="m-0">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="w-10 h-10 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center ml-auto active:scale-90">
+                                        <button type="submit" class="w-9 h-9 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-90">
                                             <i class="fa-solid fa-trash-can text-sm"></i>
                                         </button>
                                     </form>

@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; overflow: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f3f7fa; overflow: hidden; }
         
         /* Glassmorphism Panel */
         .glass-panel { 
@@ -20,6 +20,7 @@
 
         .custom-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .custom-scroll::-webkit-scrollbar { display: none; }
+        .admin-queue-table tbody td { padding-top: .5rem; padding-bottom: .5rem; }
         input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
             -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
             -webkit-text-fill-color: #f8fafc !important;
@@ -43,6 +44,10 @@
         body:has(.admin-sidebar) > main .overflow-x-auto {
             scrollbar-width: none !important;
             -ms-overflow-style: none !important;
+        }
+        .admin-queue-table thead th:last-child,
+        .admin-queue-table tbody td:last-child {
+            padding-left: 0 !important;
         }
         body:has(.admin-sidebar) > main .bg-blue-600\/10,
         body:has(.admin-sidebar) > main .bg-blue-500\/10,
@@ -99,7 +104,7 @@
         body:has(.admin-sidebar) [id^="modal"] .border-slate-800 { border-color: #e1e7ea !important; }
     </style>
 </head>
-<body class="text-slate-200 antialiased flex h-screen overflow-hidden relative">
+<body class="text-slate-700 antialiased flex h-screen overflow-hidden relative">
     @include('shared.superadmin-sidebar')
 
     @php
@@ -108,7 +113,7 @@
     @endphp
 
     {{-- KONTEN UTAMA --}}
-    <main class="flex-1 flex flex-col min-w-0 bg-[#0f172a] relative z-10 h-screen">
+    <main class="flex-1 flex flex-col min-w-0 bg-[#f3f7fa] relative z-10 h-screen">
         
         {{-- TOP NAVIGATION --}}
         <header class="flex shrink-0 items-center justify-between border-b border-[#29424c] bg-[#17303d] px-5 py-3.5 text-white md:px-8 z-40">
@@ -116,10 +121,8 @@
     @include('shared.admin-header-actions')
 </header>
         {{-- AREA SCROLLABLE --}}
-        <div class="p-6 md:p-12 flex-1 overflow-y-auto custom-scroll relative">
+        <div class="p-3 lg:p-4 flex-1 overflow-y-auto custom-scroll relative"><div class="w-full space-y-4">
             
-            <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-{{ $accent }}-600/10 blur-[120px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
-
             @if(session('success'))
                 <div class="bg-blue-500/20 border border-blue-500/50 text-blue-400 px-6 py-4 rounded-2xl mb-8 text-xs font-bold shadow-lg flex items-center gap-3 backdrop-blur-sm relative z-10">
                     <i class="fa-solid fa-circle-check text-lg"></i> {{ session('success') }}
@@ -127,100 +130,66 @@
             @endif
 
             {{-- HEADER HALAMAN --}}
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 md:mb-10 relative z-10">
-                <button onclick="openModal()" class="w-full md:ml-auto md:w-auto bg-{{ $accent }}-500 text-white px-8 py-4 rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg hover:-translate-y-1 active:scale-95 shrink-0 group">
-                    <i class="fa-solid fa-user-plus group-hover:scale-110 transition-transform"></i> Tambah User Baru
-                </button>
-            </div>
+            <section class="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h1 class="text-lg font-extrabold text-slate-900">Manajemen Pengguna</h1><p class="mt-1 text-xs text-slate-500">Kelola akun admin dan pelanggan.</p></div><button onclick="openModal()" class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#17303d] px-4 text-xs font-bold text-white shadow-sm transition hover:bg-[#244653]"><i class="fa-solid fa-user-plus"></i>Tambah User Baru</button></section>
 
-            {{-- STATISTIK SINGKAT (DIUPDATE KE ID_ROLE) --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-10 relative z-10">
-                <div class="glass-panel p-6 md:p-8 rounded-[2rem] flex justify-between items-center transition-all hover:bg-slate-800/80">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Total Pengguna</p>
-                        <span class="text-3xl md:text-4xl font-black text-white italic">{{ $totalUsers }}</span>
-                    </div>
-                    <div class="w-12 h-12 bg-slate-800 text-slate-400 border border-slate-700 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-users"></i></div>
-                </div>
-                
-                <div class="glass-panel relative overflow-hidden p-6 md:p-8 rounded-[2rem] flex justify-between items-center border-blue-500/30">
-                    <div class="absolute inset-0 bg-blue-500/10"></div>
-                    <div class="relative z-10">
-                        <p class="text-[9px] font-black text-blue-400 uppercase tracking-[0.3em] mb-2">Admin & Staff</p>
-                        {{-- Hitung id_role 2 --}}
-                        <span class="text-3xl md:text-4xl font-black text-blue-400 italic">{{ $totalAdmins }}</span>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-500/20 border border-blue-500/50 text-blue-400 rounded-full flex items-center justify-center text-xl relative z-10 shadow-[0_0_15px_rgba(16,185,129,0.3)]"><i class="fa-solid fa-user-tie"></i></div>
-                </div>
-                
-                <div class="glass-panel p-6 md:p-8 rounded-[2rem] flex justify-between items-center transition-all hover:bg-slate-800/80">
-                    <div>
-                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-2">Pelanggan</p>
-                        {{-- Hitung id_role 3 --}}
-                        <span class="text-3xl md:text-4xl font-black text-white italic">{{ $totalCustomers }}</span>
-                    </div>
-                    <div class="w-12 h-12 bg-slate-800 text-blue-400 border border-slate-700 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-bag-shopping"></i></div>
-                </div>
-            </div>
-            
             {{-- TABEL DATA USER --}}
-            <div class="glass-panel rounded-[2.5rem] border border-white/5 shadow-2xl overflow-hidden mb-10 relative z-10">
+            <div class="relative z-10 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[800px] md:min-w-0">
+                    <table class="admin-queue-table w-full min-w-[1120px] text-left text-xs">
                         <thead>
-                            <tr class="bg-slate-800/50 border-b border-slate-700 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                                <th class="px-8 py-6">Nama Pengguna</th>
-                                <th class="px-8 py-6">Email & Kontak</th>
-                                <th class="px-8 py-6 text-center">Role</th>
-                                <th class="px-8 py-6 text-right">Aksi</th>
+                            <tr class="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
+                                <th class="w-[28%] px-4 py-3">Nama Pengguna</th>
+                                <th class="w-[32%] px-4 py-3">Email & Kontak</th>
+                                <th class="w-[18%] px-4 py-3">Role</th>
+                                <th class="w-[22%] pl-1 pr-4 py-3">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-800/50 text-sm">
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($users as $u)
-                            <tr class="hover:bg-slate-800/30 transition-all group">
-                                <td class="px-8 py-6">
-                                    <p class="font-black text-white uppercase italic leading-tight group-hover:text-{{ $accent }}-400 transition-colors">{{ $u->nama }}</p>
-                                    <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Daftar: {{ $u->created_at->format('d/m/Y') }}</p>
+                            <tr class="hover:bg-slate-50/70 group">
+                                <td class="px-4 py-4">
+                                    <p class="font-bold text-slate-800 leading-tight group-hover:text-sky-700 transition-colors">{{ $u->nama }}</p>
+                                    <p class="text-[10px] text-slate-500 mt-1">Daftar: {{ $u->created_at->format('d/m/Y') }}</p>
                                 </td>
-                                <td class="px-8 py-6">
-                                    <p class="text-xs text-slate-300 font-medium">{{ $u->email }}</p>
-                                    <p class="text-[10px] text-slate-500 font-bold tracking-widest mt-1">
-                                        <i class="fa-brands fa-whatsapp text-blue-500 mr-1"></i> {{ $u->no_telp ?? '-' }}
+                                <td class="px-4 py-4">
+                                    <p class="text-xs text-slate-700 font-medium">{{ $u->email }}</p>
+                                    <p class="text-[10px] text-slate-500 mt-1">
+                                        <i class="fa-brands fa-whatsapp text-emerald-600 mr-1"></i> {{ $u->no_telp ?? '-' }}
                                     </p>
                                 </td>
-                                <td class="px-8 py-6 text-center">
+                                <td class="px-4 py-4">
                                     @if($u->status === 'Nonaktif')
-                                        <span class="bg-red-500/20 text-red-400 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-red-500/30">Nonaktif</span>
+                                        <span class="inline-flex rounded-full bg-rose-50 px-2.5 py-1.5 text-[10px] font-bold text-rose-700">Nonaktif</span>
                                     @elseif($u->id_role == 1)
-                                        <span class="bg-blue-500/20 text-blue-400 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-blue-500/30">Superadmin</span>
+                                        <span class="inline-flex rounded-full bg-violet-50 px-2.5 py-1.5 text-[10px] font-bold text-violet-700">Superadmin</span>
                                     @elseif($u->id_role == 2)
-                                        <span class="bg-blue-500/20 text-blue-400 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-blue-500/30">Admin</span>
+                                        <span class="inline-flex rounded-full bg-sky-50 px-2.5 py-1.5 text-[10px] font-bold text-sky-700">Admin</span>
                                     @else
-                                        <span class="bg-slate-700 text-slate-300 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-slate-600">Pelanggan</span>
+                                        <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1.5 text-[10px] font-bold text-slate-600">Pelanggan</span>
                                     @endif
                                 </td>
-                                <td class="px-8 py-6 text-right">
+                                <td class="pl-1 pr-4 py-4 text-left">
                                     {{-- Proteksi: Tidak bisa edit/hapus diri sendiri atau Superadmin lain --}}
                                     @if($u->id_user == auth()->user()->id_user || $u->id_role == 1)
-                                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] italic pr-2">{{ $u->id_user == auth()->user()->id_user ? 'Akun Anda' : 'Protected' }}</span>
+                                        <span class="text-[10px] font-medium text-slate-500">{{ $u->id_user == auth()->user()->id_user ? 'Akun Anda' : 'Protected' }}</span>
                                     @else
-                                        <div class="flex items-center justify-end gap-2">
+                                        <div class="flex items-center justify-start gap-1.5">
                                             {{-- Tombol Edit --}}
-                                            <button type="button" onclick="openEditModal({{ $u->id_user }}, '{{ $u->nama }}', '{{ $u->email }}', '{{ $u->no_telp ?? '' }}', {{ $u->id_role }})" class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Edit">
+                                            <button type="button" onclick="openEditModal({{ $u->id_user }}, '{{ $u->nama }}', '{{ $u->email }}', '{{ $u->no_telp ?? '' }}', {{ $u->id_role }})" class="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Edit">
                                                 <i class="fa-solid fa-pen-to-square text-sm"></i>
                                             </button>
                                             {{-- Tombol Nonaktifkan/Aktifkan --}}
                                             @if($u->status === 'Nonaktif')
                                                 <form action="{{ route('superadmin.users.toggle', $u->id_user) }}" method="POST" class="m-0">
                                                     @csrf
-                                                    <button type="submit" class="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Aktifkan">
+                                                    <button type="submit" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Aktifkan">
                                                         <i class="fa-solid fa-check text-sm"></i>
                                                     </button>
                                                 </form>
                                             @else
                                                 <form action="{{ route('superadmin.users.toggle', $u->id_user) }}" method="POST" class="m-0">
                                                     @csrf
-                                                    <button type="submit" class="w-10 h-10 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Nonaktifkan">
+                                                    <button type="submit" class="w-8 h-8 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20 hover:bg-orange-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Nonaktifkan">
                                                         <i class="fa-solid fa-ban text-sm"></i>
                                                     </button>
                                                 </form>
@@ -228,7 +197,7 @@
                                             {{-- Tombol Hapus --}}
                                             <form action="{{ route('superadmin.users.destroy', $u->id_user) }}" method="POST" onsubmit="return confirm('Hapus pengguna ini beserta semua data reservasinya?');" class="m-0">
                                                 @csrf @method('DELETE')
-                                                <button type="submit" class="w-10 h-10 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Hapus">
+                                                <button type="submit" class="w-8 h-8 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center active:scale-90" title="Hapus">
                                                     <i class="fa-solid fa-trash-can text-sm"></i>
                                                 </button>
                                             </form>
@@ -238,21 +207,22 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" class="p-24 text-center opacity-30">Belum ada data pengguna</td>
+                                <td colspan="4" class="px-4 py-10 text-center text-sm text-slate-400">Belum ada data pengguna.</td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if($users->hasPages())
-                    <div class="border-t border-slate-700/80 px-6 py-4">{{ $users->links() }}</div>
+                    <div class="border-t border-slate-100 px-4 py-3">{{ $users->links() }}</div>
                 @endif
             </div>
 
             {{-- FOOTER --}}
         </div>
-        <footer class="mt-auto w-full shrink-0 border-t border-slate-700/80 bg-[#0f172a]/50 px-6 py-6 text-center">
-            <p class="text-xs text-slate-500">&copy; 2026 <span class="font-semibold text-slate-400">ALBRK.SHOESCARE</span></p>
+        </div>
+        <footer class="w-full shrink-0 border-t border-[#dbe5ea] bg-white px-6 py-4 text-center">
+            <p class="text-xs text-slate-500">&copy; {{ now()->year }} <span class="font-semibold text-slate-600">ALBRK.SHOESCARE</span></p>
         </footer>
     </main>
 
